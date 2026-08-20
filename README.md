@@ -1,20 +1,17 @@
-# JAX-EP
-JAX-EP is a fully differentiable cardiac electrophysiology solver and parameter-inversion framework built in JAX, enabling GPU-accelerated monodomain simulations, automatic sensitivity analysis, and gradient-based inference of personalised tissue and cellular electrophysiology.
-
 # JAX-EP: Differentiable Cardiac Electrophysiology Framework
-
-This repository provides a differentiable electrophysiology simulation and parameter-inversion framework implemented in JAX. The codebase progresses systematically from cellular-level validation through full left-atrial (LA) forward simulation to parameter learning on a full 3D LA manifold.
+JAX-EP is a fully differentiable cardiac EP solver and parameter-inversion framework built in JAX, enabling GPU-accelerated monodomain simulations and gradient-based inference of personalised tissue and cellular EP parameters. This folder contains the JAX-EP blind parameter-inversion pipeline: recovering five cell-kinetics and conductivity parameters from simulated omnipolar electrograms (EGMs). The codebase progresses systematically from cellular-level validation through full left-atrial (LA) forward simulation to parameter learning on a full 3D LA manifold.
 
 ## About JAX-EP
 
 This README communicates critical structural, mathematical, and execution information about the JAX-EP project. It serves as the primary technical documentation for repository visitors and contributors.
 
-The project structure is broken down into four interconnected phases:
+The repository is organized into four interconnected core components:
 
-* **0D Cellular Validation**: Mitchell-Schaeffer single-cell validation against openCARP.
-* **2D Spatial Validation**: Combined diffusion and ionic dynamics solver testing on a flat plate.
-* **Full Left-Atrial Forward Simulation**: GPU-accelerated anisotropic Finite Element Method (FEM) modeling.
-* **Parameter Inversion Pipeline**: Blind automated recovery of cell-kinetics and conductivity variables from simulated omnipolar electrograms (EGMs).
+* **0D Cellular Validation**: Verification of the JAX-based modified Mitchell-Schaeffer (mMS) single-cell EP formulation against an independent openCARP reference trace to ensure core algorithmic and differentiability consistency.
+* **2D Spatial Validation**: Combined evaluation of the discrete spatial diffusion solver alongside localized ionic kinetics, benchmarked directly via conduction velocity profiles on an idealized 2D flat plate geometry.
+* **Fully Differentiable Monodomain Solver**: Anisotropic Finite Element Method (FEM) propagation mechanics compiled via `jax.jit` and accelerated on modern GPU architectures, showcased through high-performance Left Atrial (LA) forward simulations.
+* **Parameter Inversion Pipeline**: A dual-phase blind optimization pipeline combining a multi-stage Nelder-Mead curriculum and localized finite-difference L-BFGS-B refinement to safely recover five cell-kinetics and conductivity variables from hidden omnipolar electrograms (EGMs).
+
 
 ---
 
