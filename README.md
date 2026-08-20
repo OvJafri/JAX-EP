@@ -88,7 +88,7 @@ Each component runs independently from within its own local subdirectory. Always
 
 ### Parameter Inversion Results (NVIDIA Tesla P100)
 The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a 7-level Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
-* **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set5`).
+* **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
 * **Median Absolute Percentage Error:** 0.032%
 * **Exact Recovery:** Recovers `tau_in` and `G_IL` exactly to 3 decimal places across all trials.
 
@@ -96,7 +96,7 @@ The framework optimizes parameters under strict blind criteria using an S1-S2 pa
 | :--- | :----------- | :----------- | :--------- | :-------- |
 | **set1** | 0.000094     | 1.15e-09     | 18         | 5.7 min   |
 | **set2** | 0.000025     | 1.09e-09     | 50         | 13.7 min  |
-| **set5** | 0.000045     | 2.95e-07     | 11         | 3.3 min   |
+| **set3** | 0.000045     | 2.95e-07     | 11         | 3.3 min   |
 
 ---
 
