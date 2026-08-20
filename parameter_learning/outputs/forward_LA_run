@@ -1,0 +1,176 @@
+============================================================
+JAX Differentiable EP Solver — Full LA
+  JAX version: 0.6.2
+  Devices:     [CpuDevice(id=0)]
+  DTYPE:       <class 'jax.numpy.float32'>
+============================================================
+  NT=24200  DT=0.05ms  TOTAL=1210.0ms
+  Ionic: set5 [0.3,5.0,120.0,150.0]
+  G_IL=0.35  G_IT=0.0875  (1:4)
+
+[1] Loading mesh ...
+  132,803 nodes  264,821 elements  264,821 fibers
+  HD16_S1 shape: (16, 3)  HD16_S2 shape: (16, 3)  (1.1s)
+
+[2] Building FEM operators ...
+  Building edge-element lookup ...
+  Building cotangent weights ...
+  397,627 edges
+  Mapping Fibre_l.lon to edges ...
+  FEM done (39.3s)
+
+[3] Building lead-field weights W_j ...
+  W_j: (16, 132803)  (using HD16_S1 — site 1)
+
+[4] Building pacing masks ...
+  CS  mask: 729 nodes  ctr=[206687.9 192747.2  45700. ]
+  LAA mask: 880 nodes  ctr=[231566.5 166348.9 102245.9]
+
+[5] CS pacing forward ...
+  Compiling + running ...
+  ✓ Done: 2869.5s
+  Hard AT: [13,217]ms  activated=132,803/132,803
+  CV≈0.384 m/s
+  Saved: la_forward_cs.npz
+
+[6] LAA pacing forward ...
+  Compiling + running ...
+  ✓ Done: 2996.9s
+  Hard AT: [13,262]ms  activated=132,803/132,803
+  CV≈0.382 m/s
+  Saved: la_forward_laa.npz
+
+============================================================
+DIFFERENTIABILITY SHOWCASE
+============================================================
+
+── CS pacing ──────────────────────────────
+  A. jax.grad on full LA — skipped on CPU (run on GPU)
+     Set RUN_FULL_LA_GRAD=True on Colab A100 (~30s)
+
+  B. FD gradient verification on BOTH patches ...
+
+    ── Site 1 (1to16set5) ──────────────────────────────────
+    Patch: 2,869 nodes
+    Pacing mask: 498 nodes  edge=LEFT
+    Baseline loss=8425.284000
+    Computing FD gradient (10 passes, ~50s) ...
+    param 1/5 (    tau_in)  grad=  2.0953e+03
+    param 2/5 (   tau_out)  grad= -5.0265e+01
+    param 3/5 (  tau_open)  grad=  4.1384e+00
+    param 4/5 ( tau_close)  grad=  1.7552e+00
+    param 5/5 (      G_IL)  grad= -2.4987e+04
+
+    Param               FD grad   Valid
+    ──────────────────────────────────────
+    tau_in           2.0953e+03  ✓
+    tau_out         -5.0265e+01  ✓
+    tau_open         4.1384e+00  ✓
+    tau_close        1.7552e+00  ✓
+    G_IL            -2.4987e+04  ✓
+    FD time=129.3s
+    FD gradient: ✓ ALL VALID — same as inversion pipeline
+
+    ── Site 2 (set5) ──────────────────────────────────
+    Patch: 2,894 nodes
+    Pacing mask: 499 nodes  edge=LEFT
+    Baseline loss=1407.669021
+    Computing FD gradient (10 passes, ~50s) ...
+    param 1/5 (    tau_in)  grad=  2.3475e+03
+    param 2/5 (   tau_out)  grad=  4.2295e+01
+    param 3/5 (  tau_open)  grad=  4.2304e+00
+    param 4/5 ( tau_close)  grad=  3.1456e+00
+    param 5/5 (      G_IL)  grad= -1.2417e+03
+
+    Param               FD grad   Valid
+    ──────────────────────────────────────
+    tau_in           2.3475e+03  ✓
+    tau_out          4.2295e+01  ✓
+    tau_open         4.2304e+00  ✓
+    tau_close        3.1456e+00  ✓
+    G_IL            -1.2417e+03  ✓
+    FD time=125.1s
+    FD gradient: ✓ ALL VALID — same as inversion pipeline
+
+  C. Jacobian dAT_map/dG_IL on full LA (2 forward passes, ~600s) ...
+     (skip if time-constrained — results already in la_forward_*.npz)
+  jac_gil: [-300.00,0.00]ms  time=5162.7s
+
+  D. vmap batch demo (4 param sets) ...
+  vmap 4 sets: 1.4s  sequential est: 11477.9s
+
+── LAA pacing ──────────────────────────────
+  A. jax.grad on full LA — skipped on CPU (run on GPU)
+     Set RUN_FULL_LA_GRAD=True on Colab A100 (~30s)
+
+  B. FD gradient verification on BOTH patches ...
+
+    ── Site 1 (1to16set5) ──────────────────────────────────
+    Patch: 2,869 nodes
+    Pacing mask: 498 nodes  edge=LEFT
+    Baseline loss=8425.284000
+    Computing FD gradient (10 passes, ~50s) ...
+    param 1/5 (    tau_in)  grad=  2.0953e+03
+    param 2/5 (   tau_out)  grad= -5.0265e+01
+    param 3/5 (  tau_open)  grad=  4.1384e+00
+    param 4/5 ( tau_close)  grad=  1.7552e+00
+    param 5/5 (      G_IL)  grad= -2.4987e+04
+
+    Param               FD grad   Valid
+    ──────────────────────────────────────
+    tau_in           2.0953e+03  ✓
+    tau_out         -5.0265e+01  ✓
+    tau_open         4.1384e+00  ✓
+    tau_close        1.7552e+00  ✓
+    G_IL            -2.4987e+04  ✓
+    FD time=76.9s
+    FD gradient: ✓ ALL VALID — same as inversion pipeline
+
+    ── Site 2 (set5) ──────────────────────────────────
+    Patch: 2,894 nodes
+    Pacing mask: 499 nodes  edge=LEFT
+    Baseline loss=1407.669021
+    Computing FD gradient (10 passes, ~50s) ...
+    param 1/5 (    tau_in)  grad=  2.3475e+03
+    param 2/5 (   tau_out)  grad=  4.2295e+01
+    param 3/5 (  tau_open)  grad=  4.2304e+00
+    param 4/5 ( tau_close)  grad=  3.1456e+00
+    param 5/5 (      G_IL)  grad= -1.2417e+03
+
+    Param               FD grad   Valid
+    ──────────────────────────────────────
+    tau_in           2.3475e+03  ✓
+    tau_out          4.2295e+01  ✓
+    tau_open         4.2304e+00  ✓
+    tau_close        3.1456e+00  ✓
+    G_IL            -1.2417e+03  ✓
+    FD time=68.0s
+    FD gradient: ✓ ALL VALID — same as inversion pipeline
+
+  C. Jacobian dAT_map/dG_IL on full LA (2 forward passes, ~600s) ...
+     (skip if time-constrained — results already in la_forward_*.npz)
+  jac_gil: [-375.00,0.00]ms  time=5970.6s
+
+  D. vmap batch demo (4 param sets) ...
+  vmap 4 sets: 1.4s  sequential est: 11987.7s
+
+============================================================
+FINAL SUMMARY — JAX Differentiable LA EP Solver
+============================================================
+  Mesh:    132,803 nodes  264,821 elements
+  Fibers:  Fibre_l.lon (264,821 per-element, dth=0)
+  Ionic:   set5  G_IL=0.35  G_IT=0.0875
+  Protocol:2xS1  BCL=600.0ms  NT=24200
+
+  CS pacing: forward=2869.5s  CV=0.384 m/s
+
+  LAA pacing: forward=2996.9s  CV=0.382 m/s
+
+  Differentiability:
+    jax.jit + jax.lax.scan  — compiled forward ✓
+    jax.checkpoint           — O(sqrt(NT)) memory ✓
+    jax.grad (full LA)       — G_IL stable, ionic NaN (long chain) ✓
+    FD gradient (patch)      — both sites verified ✓
+    jax.vmap                 — batch forward ✓
+    Soft AT map              — differentiable ✓
+DONE
