@@ -14,8 +14,8 @@ The repository is organized into four interconnected core components:
 
 
 ---
-<img src="parameter_learning/Forward_mode_autodiff.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="500">
-## Core Framework Functionality
+<img src="parameter_learning/Forward_mode_autodiff.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+
 
 JAX-EP provides a scalable computational framework for solving monodomain equations while exposing internal parameters to optimization frameworks. It achieves:
 1. **Accelerated Forward Models**: Over 50x GPU-to-CPU simulation speedups using Custom Crank-Nicolson solvers and `jax.jit`.
