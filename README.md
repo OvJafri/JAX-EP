@@ -15,7 +15,7 @@ The repository is organized into four interconnected core components:
 
 ---
 
-## What the Project Does
+## Core Framework Functionality
 
 JAX-EP provides a scalable computational framework for solving monodomain equations while exposing internal parameters to optimization frameworks. It achieves:
 1. **Accelerated Forward Models**: Over 50x GPU-to-CPU simulation speedups using Custom Crank-Nicolson solvers and `jax.jit`.
