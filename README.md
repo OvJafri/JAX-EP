@@ -3,7 +3,7 @@ JAX-EP is a fully differentiable cardiac EP solver and parameter-inversion frame
 
 ## About JAX-EP
 
-This README communicates critical structural, mathematical, and execution information about the JAX-EP project. It serves as the primary technical documentation for repository visitors and contributors.
+This README communicates structural, mathematical, and execution information about the JAX-EP project. It serves as the primary technical documentation for repository visitors and contributors.
 
 The repository is organized into four interconnected core components:
 
