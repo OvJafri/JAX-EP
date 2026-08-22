@@ -55,7 +55,7 @@ pip install -r requirements.txt
 ### 2. Relative Directory Paths and Execution
 Each component runs independently from within its own local subdirectory. Always ensure your environment is active before running scripts:
 
-* **To run validation against bench trace (0D) and CARP reference (2D):**
+* **To run validation against bench trace (0D) and CARP reference (2D)[3]:**
   ```bash
   cd benchmark/0D_validation/
   python 0D_differentiable_validation.py
@@ -156,3 +156,5 @@ For individual component deep-dives, mathematical validations, structural nuance
 [1] Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S. & Zhang, Q. (2018). *JAX: composable transformations of Python+NumPy programs*. Version 0.3.13. https://github.com/google/jax
 
 [2] Corrado, C. & Niederer, S. A. (2016). *A two-variable model robust to pacemaker behaviour for the dynamics of the cardiac action potential*. **Mathematical Biosciences, 281**, 46–54.
+
+[3] Plank, G., Loewe, A., Neic, A., Augustin, C., Huang, Y.-L., Gsell, M. A. F., Karabelas, E., Nothstein, M., Prassl, A. J., Sánchez, J. & others (2021). *The openCARP simulation environment for cardiac electrophysiology*. **Computer Methods and Programs in Biomedicine, 208**, 106223.
