@@ -63,7 +63,7 @@ Each component runs independently from within its own local subdirectory. Always
 * **To run spatial validation:**
   ```bash
   cd benchmark/2D_validation/
-  python benchmark2D_github.py
+  python benchmark2D.py
   ```
 * **To run the full left-atrial forward simulation:**
   ```bash
