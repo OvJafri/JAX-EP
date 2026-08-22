@@ -82,7 +82,7 @@ Each component runs independently from within its own local subdirectory. Always
 
 ---
 
-## Technical Specifications and Benchmarks
+## Technical Specifications and Performance 
 
 ### Full-LA Forward Performance (NVIDIA Tesla T4)
 * **CS Pacing Forward:** 46.2s GPU vs. 2608.2s CPU (**56x Speedup**)
