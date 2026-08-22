@@ -90,7 +90,7 @@ Each component runs independently from within its own local subdirectory. Always
 * **Full Jacobian Matrix ($dAT/dG_{IL}$):** 90.4s GPU vs. 5096.2s CPU (**56x Speedup**)
 
 ### 2D Tissue-Sample Forward Performance (NVIDIA Tesla P100)
-
+To ensure a comparable test with similar spatial and temporal resolution as compared to the patient LA mesh (dx = 0.351mm median edge length, DT = 0.1ms), the cube uses dx = 0.2mm and DT = 0.1ms with N_T = 11,100 timesteps
 * **Forward Simulation:** 57.7s CPU vs. 1.34s GPU (**43× Speedup**)
 * **Activation Map:** Identical CPU and GPU activation patterns
 * **Maximum |AT Difference|:** 0.000 ms
