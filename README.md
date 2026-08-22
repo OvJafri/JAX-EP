@@ -68,9 +68,6 @@ Each component runs independently from within its own local subdirectory. Always
   ```bash
   cd forward_model/
   python run_forward.py
-  ```
-   ```bash
-  cd forward_model/
   python run_cpu_gpu_comparison.py
   ```
 * **To run the parameter learning framework:**
