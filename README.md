@@ -126,6 +126,63 @@ To ensure a comparable test with similar spatial and temporal resolution as comp
 </table>
 
 The GPU reduced the forward simulation time by **43×** while producing an activation map numerically identical to the CPU implementation.
+## Solver Differentiability
+
+A central feature of JAX-EP is the ability to differentiate through the complete cardiac electrophysiology simulation pipeline. This enables gradients of simulated electrophysiological observables with respect to both cellular and tissue parameters, providing the foundation for gradient-based parameter inference.
+
+Differentiability was explicitly verified using a 3D tissue sample consisting of **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps corresponding to a total simulation time of 1110 ms. The benchmark compares finite-difference (FD) gradients against both reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation.
+
+<img src="parameter_learning/Forward_mode_autodiff.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+
+### Forward-Mode Automatic Differentiation
+
+For the tested ionic parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`) and longitudinal intracellular conductivity (`G_IL`), `jax.jacfwd` reproduced the finite-difference gradients with excellent agreement:
+
+| Parameter | FD Gradient | `jax.jacfwd` | Ratio |
+| :--- | ---: | ---: | ---: |
+| `tau_in` | -3.0118e-01 | -3.0116e-01 | 0.9999 |
+| `tau_out` | 1.8851e-02 | 1.8851e-02 | 1.0000 |
+| `tau_open` | -6.1344e-10 | -6.2751e-10 | 1.0229 |
+| `tau_close` | 1.0544e-03 | 1.0544e-03 | 1.0000 |
+| `G_IL` | -3.1939e-04 | -3.2335e-04 | 1.0124 |
+
+The forward-mode derivatives were stable for all tested parameters, with the largest deviation from the finite-difference reference being approximately **2.3%**.
+
+### Reverse-Mode Automatic Differentiation
+
+In contrast, direct reverse-mode differentiation using `jax.grad` produced severe gradient amplification for the stiff ionic dynamics. The resulting derivatives differed from the finite-difference reference by several orders of magnitude, making the gradients unsuitable for stable parameter optimization in this configuration.
+
+This behaviour was observed consistently across both CPU and GPU executions, indicating that the issue originates from the differentiation of the stiff ionic time integration rather than the computational device.
+
+### Differentiable Electrogram Generation
+
+The differentiability extends beyond the transmembrane voltage state to derived electrophysiological observables. A bipolar EGM configuration using two spatially separated electrode regions was included in the benchmark. Forward-mode differentiation again reproduced the finite-difference gradients with close agreement, including for `G_IL`.
+
+| Parameter | FD Gradient | `jax.jacfwd` | Ratio |
+| :--- | ---: | ---: | ---: |
+| `tau_in` | 9.7765e-03 | 9.7775e-03 | 1.0001 |
+| `tau_out` | -8.7719e-05 | -8.7848e-05 | 1.0015 |
+| `tau_open` | -2.1321e-09 | -2.1333e-09 | 1.0006 |
+| `tau_close` | -1.5596e-06 | -1.5651e-06 | 1.0035 |
+| `G_IL` | -1.2619e-02 | -1.2620e-02 | 1.0001 |
+
+The bipolar EGM benchmark therefore provides an independent demonstration that gradients can be propagated through the simulation and EGM generation pipeline.
+
+### CPU/GPU Differentiability Performance
+
+The differentiability benchmark also demonstrates the computational advantage of JAX-EP on GPU hardware. For the complete FD, `jax.grad`, and `jax.jacfwd` benchmark:
+
+| Benchmark | CPU | GPU | GPU Speed-up |
+| :--- | ---: | ---: | ---: |
+| Raw voltage (`V²` loss) | 1722.8 s | 45.6 s | **37.8×** |
+| Bipolar EGM | 1866.9 s | 45.9 s | **40.7×** |
+
+The GPU implementation therefore provides approximately **38–41× acceleration** for the differentiability benchmark while retaining agreement with the reference finite-difference gradients.
+
+Overall, these tests establish that JAX-EP provides a **fully differentiable cardiac EP simulation pipeline**, with forward-mode automatic differentiation providing stable gradients through the stiff ionic dynamics and derived EGM calculations. This differentiability forms the computational basis for the subsequent **gradient-based parameter-learning and personalised EP inference** framework.
+
+
+
 ### Parameter Inversion Results (NVIDIA Tesla P100)
 The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a 7-level Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
