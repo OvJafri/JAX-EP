@@ -65,10 +65,14 @@ Each component runs independently from within its own local subdirectory. Always
   cd benchmark/2D_validation/
   python benchmark2D.py
   ```
-* **To run the left atrial 2D tissue sample (forward simulation):**
+* **To run the left atrial 2D tissue sample and compare CPU/GPU performance (forward simulations):**
   ```bash
   cd forward_model/
   python Forward_LA.py
+  ```
+   ```bash
+  cd forward_model/
+  python run_cpu_gpu_comparison.py
   ```
 * **To run the parameter learning framework:**
   ```bash
