@@ -64,7 +64,7 @@ Each component runs independently from within its own local subdirectory. Always
   cd benchmark/2D_validation/
   python benchmark2D.py
   ```
-* **To run the left atrial 3D tissue cube sample using JAX-EP differentiable monodomain solver and compare CPU/GPU performance (forward simulations):**
+* **To run LA tissue sample (3D cube) using JAX-EP solver and compare CPU/GPU performance (forward simulations):**
   ```bash
   cd forward_model/
   python run_forward.py
