@@ -7,7 +7,7 @@ This README communicates structural, mathematical, and execution information abo
 
 The repository is organized into four interconnected core components:
 
-* **0D Cellular Validation**: Verification of the JAX-based modified Mitchell-Schaeffer (mMS) single-cell EP formulation against an independent openCARP reference trace to ensure core algorithmic and differentiability consistency.
+* **0D Cellular Validation**: Verification of the JAX-based modified Mitchell-Schaeffer (mMS) single-cell EP formulation [1] against an independent openCARP reference trace to ensure core algorithmic and differentiability consistency.
 * **2D Spatial Validation**: Combined evaluation of the discrete spatial diffusion solver alongside localized ionic kinetics, benchmarked directly via conduction velocity profiles on an idealized 2D flat plate geometry.
 * **Fully Differentiable Monodomain Solver**: Anisotropic Finite Element Method (FEM) propagation mechanics compiled via `jax.jit` and accelerated on modern GPU architectures, showcased through high-performance Left Atrial (LA) forward simulations.
 * **Parameter Inversion Pipeline**: Benefiting from the differentiability of the JAX-EP monodomain solver, a dual-phase optimization pipeline combining multi-stage Nelder–Mead optimization with localized finite-difference L-BFGS-B refinement was developed to recover five cellular-kinetic and conductivity parameters from clinically motivated omnipolar electrograms (EGMs).
@@ -149,7 +149,5 @@ For individual component deep-dives, mathematical validations, structural nuance
 
 ### References
 
-* **Modified Mitchell–Schaeffer (mMS) single-cell electrophysiology formulation:**  
-  Corrado, C. & Niederer, S. A. (2016). *A two-variable model robust to pacemaker behaviour for the dynamics of the cardiac action potential*. **Mathematical Biosciences, 281**, 46–54.  
-  [https://doi.org/10.1016/j.mbs.2016.08.002](https://doi.org/10.1016/j.mbs.2016.08.002)
+[1] Corrado, C. & Niederer, S. A. (2016). *A two-variable model robust to pacemaker behaviour for the dynamics of the cardiac action potential*. **Mathematical Biosciences, 281**, 46–54.
 
