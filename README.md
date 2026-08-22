@@ -84,7 +84,7 @@ Each component runs independently from within its own local subdirectory. Always
 
 ## Technical Specifications and Performance 
 
-### Full-LA Forward Performance (NVIDIA Tesla T4)
+### MRI derived Patient Specific Left atrial (LA) Forward Simulation Performance (NVIDIA Tesla T4)
 * **CS Pacing Forward:** 46.2s GPU vs. 2608.2s CPU (**56x Speedup**)
 * **LAA Pacing Forward:** 46.8s GPU vs. 2738.6s CPU (**58x Speedup**)
 * **Full Jacobian Matrix ($dAT/dG_{IL}$):** 90.4s GPU vs. 5096.2s CPU (**56x Speedup**)
