@@ -55,12 +55,11 @@ pip install -r requirements.txt
 ### 2. Relative Directory Paths and Execution
 Each component runs independently from within its own local subdirectory. Always ensure your environment is active before running scripts:
 
-* **To run cellular validation against bench trace:**
+* **To run validation against bench trace (0D) and CARP reference (2D):**
   ```bash
   cd benchmark/0D_validation/
   python 0D_differentiable_validation.py
   ```
-* **To run spatial validation against CARP reference:**
   ```bash
   cd benchmark/2D_validation/
   python benchmark2D.py
