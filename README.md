@@ -145,9 +145,11 @@ The framework optimizes parameters under strict blind criteria using an S1-S2 pa
 
 ## Further Reading
 
-For individual component deep-dives, math validations, structural nuances, and complete data formats, refer to the relative text files located directly within each subfolder:
-* [Cellular Validation details](benchmark/0D_validation/README_0D_differentiable_validation.txt)
-* [Spatial Solver technicalities](benchmark/2D_validation/README_2D_validation.txt)
-* [Left-Atrial Forward Model layout](forward_model/README_forward_model.txt)
-* [Parameter Estimation configuration](parameter_learning/README_parameter_learning.txt)
+For individual component deep-dives, mathematical validations, structural nuances, and complete data formats, refer to the relevant text files located directly within each subfolder.
+
+### References
+
+* **Modified Mitchell–Schaeffer (mMS) single-cell electrophysiology formulation:**  
+  Corrado, C. & Niederer, S. A. (2016). *A two-variable model robust to pacemaker behaviour for the dynamics of the cardiac action potential*. **Mathematical Biosciences, 281**, 46–54.  
+  [https://doi.org/10.1016/j.mbs.2016.08.002](https://doi.org/10.1016/j.mbs.2016.08.002)
 
