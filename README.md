@@ -55,7 +55,7 @@ pip install -r requirements.txt
 ### 2. Relative Directory Paths and Execution
 Each component runs independently from within its own local subdirectory. Always ensure your environment is active before running scripts:
 
-* **To run validation against bench trace (0D) and CARP reference (2D)[3]:**
+* **To run JAX-EP solver validation against carpentry bench (0D trace) and CARP 2D reference simulation [3]:**
   ```bash
   cd benchmark/0D_validation/
   python 0D_differentiable_validation.py
@@ -64,13 +64,13 @@ Each component runs independently from within its own local subdirectory. Always
   cd benchmark/2D_validation/
   python benchmark2D.py
   ```
-* **To run the left atrial 2D tissue sample and compare CPU/GPU performance (forward simulations):**
+* **To run the left atrial 3D tissue cube sample using JAX-EP differentiable monodomain solver and compare CPU/GPU performance (forward simulations):**
   ```bash
   cd forward_model/
   python run_forward.py
   python run_cpu_gpu_comparison.py
   ```
-* **To run the parameter learning framework:**
+* **To run the end-to-end differentiable parameter learning framework:**
   ```bash
   cd parameter_learning/
   python Run_GT_generation.py
