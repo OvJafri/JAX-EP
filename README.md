@@ -68,7 +68,7 @@ Each component runs independently from within its own local subdirectory. Always
 * **To run the left atrial 2D tissue sample and compare CPU/GPU performance (forward simulations):**
   ```bash
   cd forward_model/
-  python Forward_LA.py
+  python run_forward.py
   ```
    ```bash
   cd forward_model/
