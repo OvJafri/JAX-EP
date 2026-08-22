@@ -89,6 +89,46 @@ Each component runs independently from within its own local subdirectory. Always
 * **LAA Pacing Forward:** 46.8s GPU vs. 2738.6s CPU (**58x Speedup**)
 * **Full Jacobian Matrix ($dAT/dG_{IL}$):** 90.4s GPU vs. 5096.2s CPU (**56x Speedup**)
 
+### 2D Tissue-Sample Forward Performance (NVIDIA Tesla P100)
+
+* **Forward Simulation:** 57.7s CPU vs. 1.34s GPU (**43× Speedup**)
+* **Activation Map:** Identical CPU and GPU activation patterns
+* **Maximum |AT Difference|:** 0.000 ms
+
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>CPU</th>
+    <th>GPU</th>
+    <th>GPU Speed-up</th>
+  </tr>
+  <tr>
+    <td><b>Forward simulation</b></td>
+    <td>57.732 s</td>
+    <td><b>1.342 s</b></td>
+    <td><b>43.0×</b></td>
+  </tr>
+  <tr>
+    <td>Activated nodes</td>
+    <td>18,432</td>
+    <td>18,432</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>Activation-time range</td>
+    <td>13.10–54.40 ms</td>
+    <td>13.10–54.40 ms</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td>Activation map agreement</td>
+    <td>—</td>
+    <td><b>Identical</b></td>
+    <td><b>0.000 ms</b> max difference</td>
+  </tr>
+</table>
+
+The GPU reduced the forward simulation time by **43×** while producing an activation map numerically identical to the CPU implementation.
 ### Parameter Inversion Results (NVIDIA Tesla P100)
 The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a 7-level Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
