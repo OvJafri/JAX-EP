@@ -137,7 +137,7 @@ A central feature of JAX-EP is its end-to-end differentiability, allowing gradie
 
 Above differentiability results can be reproduced using `run_differentiability_cpu_gpu.py`, which uses a 3D cube representative of the full LA simulation, with matching spatial and temporal resolutions. The example uses a 3D tissue cube comprising **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps (total simulation time: 1110 ms). The script compares finite-difference (FD) gradients with reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation, and includes the corresponding CPU/GPU benchmark.
 
-### Forward-Mode Automatic Differentiation
+### Forward-Mode Autodiff
 
 For the tested ionic parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`) and longitudinal intracellular conductivity (`G_IL`), `jax.jacfwd` reproduced the finite-difference gradients with excellent agreement:
 
@@ -151,7 +151,7 @@ For the tested ionic parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`) a
 
 The forward-mode derivatives were stable across all tested parameters, with the largest deviation from the finite-difference reference of approximately **2.3%**. These gradient comparisons can be reproduced and visualised using `plot_gradients.py`.
 
-### Reverse-Mode Automatic Differentiation
+### Reverse-Mode Autodiff
 
 In contrast, direct reverse-mode differentiation using `jax.grad` produced severe gradient amplification for the stiff ionic dynamics. The resulting derivatives differed from the finite-difference reference by several orders of magnitude, making the gradients unsuitable for stable parameter optimization in this configuration.
 
