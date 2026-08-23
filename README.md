@@ -320,7 +320,7 @@ This 0D experiment therefore provides two complementary validations: **(i)** JAX
 The 0D parameter-learning experiment can be reproduced using the corresponding script in the `parameter_learning/` directory. The generated animation is saved as `0D_parameter_recovery.gif`.
 ### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
 
-The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
+The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals. (parameter_learning/plot_la_patch_9cliques_egm.py can be used to plot the clinical type Omnipolar EGMs simulated using our differentiable JAX-EP monodomain solver) 
 
 <img src="parameter_learning/GT_EGM.png" alt="Ground truth S1 and S2 omnipolar electrograms used for parameter learning" width="650">
 
