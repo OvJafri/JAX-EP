@@ -70,11 +70,11 @@ Each component runs independently from within its own local subdirectory. Always
   python run_forward.py
   python run_cpu_gpu_comparison.py
   ```
-* **To run the end-to-end differentiable parameter learning framework:**
+* **To reproduce the end-to-end differentiable parameter-learning workflow:**
   ```bash
   cd parameter_learning/
-  python Run_GT_generation.py
-  python Parameter_learning.py
+  python run_differentiability_cpu_gpu.py
+  python patch_differentiability_showcase.py
   ```
 
 ---
