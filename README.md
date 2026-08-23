@@ -330,7 +330,9 @@ $\tau_\mathrm{in}\in[0.05,0.4]$,
 $\tau_\mathrm{out}\in[0.5,9.5]$,
 $\tau_\mathrm{open}\in[65,215]$, and
 $\tau_\mathrm{close}\in[65,185]$.
-<img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+
+<img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.gif" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+
 The three phase JAX based optimization uses:
 
 1. **Phase 1:** Adam optimization of the 0D APD restitution curve.
