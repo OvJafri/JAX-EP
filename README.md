@@ -132,7 +132,7 @@ A central feature of JAX-EP is the ability to differentiate through the complete
 
 Differentiability was explicitly verified using a 3D tissue sample consisting of **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps corresponding to a total simulation time of 1110 ms. The benchmark compares finite-difference (FD) gradients against both reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation.
 
-<img src="parameter_learning/Forward_mode_autodiff.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+<img src="differentiability/figure_cube_gradient_verification.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
 
 ### Forward-Mode Automatic Differentiation
 
