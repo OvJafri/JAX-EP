@@ -322,6 +322,8 @@ The 0D parameter-learning experiment can be reproduced using the corresponding s
 
 The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
 
+<img src="GT_EGM.png" alt="Ground truth S1 and S2 omnipolar electrograms used for parameter learning" width="650">
+
 Parameter learning proceeds in two stages. Phase 1 uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. Phase 2 refines the resulting fit using finite difference gradient L BFGS B on the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
 
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
