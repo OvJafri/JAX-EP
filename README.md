@@ -210,7 +210,6 @@ This example extends the differentiability test beyond the simplified 3D cube to
 
 Overall, these tests establish that JAX-EP provides a **fully differentiable cardiac EP simulation pipeline**, with forward-mode automatic differentiation providing stable gradients through the stiff ionic dynamics and derived EGM calculations. This differentiability forms the computational basis for the subsequent **gradient-based parameter-learning and personalised EP inference** framework.
 
-
 ### 0D Parameter Learning: APD Restitution Recovery
 
 Before performing spatially distributed parameter learning, JAX-EP was validated at the **0D cellular level** through blind recovery of the four modified Mitchell–Schaeffer kinetic parameters: `tau_in`, `tau_out`, `tau_open`, and `tau_close`.
