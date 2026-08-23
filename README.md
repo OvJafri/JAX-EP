@@ -133,7 +133,7 @@ A central feature of JAX-EP is its end-to-end differentiability, allowing gradie
 
 <img src="differentiability/figure_cube_gradient_verification.png" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
 
-Above differentiability results can be reproduced using `run_differentiability_cpu_gpu.py`. The example uses a 3D tissue cube comprising **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps (total simulation time: 1110 ms). The script compares finite-difference (FD) gradients with reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation, and includes the corresponding CPU/GPU benchmark.
+Above differentiability results can be reproduced using `run_differentiability_cpu_gpu.py`, which uses a 3D cube representative of the full LA simulation, with matching spatial and temporal resolutions. The example uses a 3D tissue cube comprising **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps (total simulation time: 1110 ms). The script compares finite-difference (FD) gradients with reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation, and includes the corresponding CPU/GPU benchmark.
 
 ### Forward-Mode Automatic Differentiation
 
