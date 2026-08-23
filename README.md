@@ -331,7 +331,7 @@ $\tau_\mathrm{out}\in[0.5,9.5]$,
 $\tau_\mathrm{open}\in[65,215]$, and
 $\tau_\mathrm{close}\in[65,185]$.
 
-<img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.gif" alt="JAX-EP Forward-mode Automatic Differentiation Validation" width="650">
+<img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.gif" alt="JAX-EP 1D fiber scale parameter learning" width="850">
 
 The three phase JAX based optimization uses:
 
