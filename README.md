@@ -258,10 +258,11 @@ Ovais Ahmed Jaffery¹`*`, Mahmoud Ehnesh², H Valli¹, Gregory Slabaugh¹, Edwar
 
 ### About This Repository
 
-This repository provides the official implementation and computational framework described in our submitted study. **JAX-EP** leverages the high-performance computing capabilities of JAX to introduce a fully differentiable monodomain solver designed for cardiac electrophysiology. By tracking cellular dynamics across spatial dimensions with automatic differentiation, this framework unlocks efficient parameter-learning workflows and inverse modeling. It contains all code necessary to reproduce the paper's core findings, including **differentiability benchmarks**, **validation experiments**, and **gradient-based optimization routines**.
+This repository provides the official implementation and computational framework described in our submitted study. **JAX-EP** leverages the high-performance computing capabilities of JAX to introduce a fully differentiable monodomain solver designed for cardiac electrophysiology. By tracking cellular dynamics across spatial dimensions with automatic differentiation, this framework unlocks efficient parameter-learning workflows and inverse modeling. 
 
 > [!NOTE]  
-> This manuscript is currently undergoing peer review at *Scientific Reports*. The code is fully functional, and updates will be pushed dynamically to match any future revisions.
+> This manuscript is currently undergoing peer review at *Scientific Reports*. The code uploaded on this repository contained representative examples with functional parameter learning, and updates will be pushed dynamically to match any future revisions. Clinical data from the HEAT-AF investigation [5] has been withheld from this repository to comply with patient privacy laws and data-sharing restrictions.
+
 
 ---
 ## Further Reading
@@ -280,3 +281,6 @@ For individual component deep-dives, mathematical validations, structural nuance
 [3] Plank, G., Loewe, A., Neic, A., Augustin, C., Huang, Y.-L., Gsell, M. A. F., Karabelas, E., Nothstein, M., Prassl, A. J., Sánchez, J. & others (2021). *The openCARP simulation environment for cardiac electrophysiology*. **Computer Methods and Programs in Biomedicine, 208**, 106223.
 
 [4] Sundnes, J., Lines, G. T., Cai, X., Nielsen, B. F., Mardal, K.-A. & Tveito, A. (2007). Computing the Electrical Activity in the Heart. Springer, 1.
+
+[5] Valli, H., Ehnesh, M., Coveney, S., Jones, D. G., Chen, Z., Hussain, W., Markides, V., Nanthakumar, K., Wong, T., Roney, C. & others. (2025). *High Density Evaluation of the Arrhythmogenic Substrate in Atrial Fibrillation (HEAT-AF)*. Heart Rhythm O2.
+
