@@ -182,6 +182,26 @@ The differentiability benchmark also demonstrates the computational advantage of
 
 The GPU implementation therefore provides approximately **38–41× acceleration** for the differentiability benchmark while retaining agreement with the reference finite-difference gradients.
 
+### Patient-Specific LA Patch Differentiability
+
+The differentiability workflow was also tested on a representative patch extracted from the **patient-specific MRI-derived LA anatomy** used for the HD-grid omnipolar EGM simulations. The extracted patch contains **2,894 nodes and 5,572 elements** and retains the same spatial and temporal discretisation used in the full LA simulation. The patch also includes the HD-grid electrode geometry and fibre information required to generate the simulated omnipolar EGMs.
+
+The complete test can be reproduced using `patch_differentiability_showcase.py` with the provided `patch_geometry.npz`. The script generates the ground-truth omnipolar EGMs and compares finite-difference (FD), reverse-mode (`jax.grad`), and forward-mode (`jax.jacfwd`) derivatives for the five model parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`.
+
+For the representative `set3` case, `jax.jacfwd` remained stable for all five parameters and closely matched the FD reference:
+
+| Parameter | FD Gradient | `jax.jacfwd` | Ratio |
+| :--- | ---: | ---: | ---: |
+| `tau_in` | -2.6556e+03 | -2.6730e+03 | 1.0066 |
+| `tau_out` | 1.8406e+01 | 1.9386e+01 | 1.0533 |
+| `tau_open` | 2.6224e+00 | 2.6142e+00 | 0.9969 |
+| `tau_close` | 2.7259e+00 | 2.7538e+00 | 1.0103 |
+| `G_IL` | -2.7231e+04 | -2.7209e+04 | 0.9992 |
+
+The largest deviation from the FD reference was approximately **5.3%**, with all five forward-mode derivatives remaining within the stability criterion used by the benchmark. In contrast, reverse-mode `jax.grad` again produced severe gradient amplification, with derivatives diverging from the FD reference by many orders of magnitude due to the stiff ionic dynamics.
+
+This example extends the differentiability test beyond the simplified 3D cube to a geometry **extracted directly from the patient-specific LA anatomy**, while retaining the simulated HD-grid omnipolar EGM generation pipeline. The patch test and outputs can be reproduced with `patch_differentiability_showcase.py`; the extracted geometry is provided as `patch_geometry.npz`.
+
 Overall, these tests establish that JAX-EP provides a **fully differentiable cardiac EP simulation pipeline**, with forward-mode automatic differentiation providing stable gradients through the stiff ionic dynamics and derived EGM calculations. This differentiability forms the computational basis for the subsequent **gradient-based parameter-learning and personalised EP inference** framework.
 
 
