@@ -324,7 +324,7 @@ The parameter-learning pipeline recovers five cellular-kinetic and conductivity 
 
 <img src="parameter_learning/GT_EGM.png" alt="Ground truth S1 and S2 omnipolar electrograms used for parameter learning" width="650">
 
-Parameter learning proceeds in two stages. Phase 1 uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. Phase 2 refines the resulting fit using finite difference gradient L BFGS B on the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
+Parameter learning proceeds in two stages. Phase 1 uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. Phase 2 refines the resulting fit using L BFGS B with gradients computed by forward mode autodiff, minimizing the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
 
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
 * **Median Absolute Percentage Error:** 0.032%
