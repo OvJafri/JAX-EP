@@ -333,7 +333,7 @@ $\tau_\mathrm{close}\in[65,185]$.
 <div style="width:950px;height:450px;overflow:hidden;">
   <img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.gif"
        alt="JAX-EP 1D fiber scale parameter learning"
-       style="width:950px;margin-top:-80px;">
+       style="width:950px;margin-top:-500px;">
 </div>
 
 
