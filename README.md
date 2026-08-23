@@ -201,6 +201,9 @@ The framework optimizes parameters under strict blind criteria using an S1-S2 pa
 
 For individual component deep-dives, mathematical validations, structural nuances, and complete data formats, refer to the relevant text files located directly within each subfolder.
 
+* R. Newbury *et al.*, "**A Review of Differentiable Simulators**," in *IEEE Access*, vol. 12, pp. 98114-98132, 2024, doi: [10.1109/ACCESS.2024.3425448](https://doi.org).
+
+
 ### References
 
 [1] Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C., Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S. & Zhang, Q. (2018). *JAX: composable transformations of Python+NumPy programs*. Version 0.3.13. https://github.com/google/jax
