@@ -315,14 +315,7 @@ Across the complete restitution curve (**S2 = 300–500 ms**), the recovered mod
 
 Although the APD restitution curve was reproduced with high accuracy, the results also demonstrate an important property of inverse cellular modelling: **APD restitution alone does not uniquely constrain all ionic parameters**. In particular, `tau_in` and `tau_out` exhibited substantially different recovered values while producing an almost identical restitution curve.
 
-| Parameter | Ground Truth | Recovered | Absolute Difference | Error (%) |
-| :--- | ---: | ---: | ---: | ---: |
-| `tau_in` | 0.3000 | 0.0658 | 0.2342 | 78.07 |
-| `tau_out` | 6.0000 | 1.4182 | 4.5818 | 76.36 |
-| `tau_open` | 120.0000 | 121.7327 | 1.7327 | 1.44 |
-| `tau_close` | 150.0000 | 159.3775 | 9.3775 | 6.25 |
-
-This 0D experiment therefore provides two complementary validations: **(i)** JAX-EP can differentiate through the cellular dynamics and recover parameters that strongly influence restitution behaviour, and **(ii)** matching APD restitution does not necessarily imply unique recovery of the underlying ionic parameters. This motivates the use of richer electrophysiological observables, including electrogram morphology and activation-related features, in the subsequent spatial parameter-learning framework.
+This 0D experiment therefore provides two complementary validations: **(i)** JAX-EP can differentiate through the cellular dynamics and recover parameters that strongly influence restitution behaviour, and **(ii)** matching APD restitution does not necessarily imply unique recovery of the underlying ionic parameters. This motivates the use of better EP observables, including EGM morphology and activation-related features, in the subsequent 3D LA patient specific parameter-learning framework.
 
 The 0D parameter-learning experiment can be reproduced using the corresponding script in the `parameter_learning/` directory. The generated animation is saved as `0D_parameter_recovery.gif`.
 ### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
