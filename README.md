@@ -202,7 +202,7 @@ For the representative `set3` case, `jax.jacfwd` remained stable for all five pa
 | `tau_close` | 2.7259e+00 | 2.7538e+00 | 1.0103 |
 | `G_IL` | -2.7231e+04 | -2.7209e+04 | 0.9992 |
 
-Forward-mode derivatives agreed closely with the FD reference across all five parameters — mean absolute deviation ~1.5%, maximum ~5.3%, both within the benchmark's stability criterion — whereas reverse-mode jax.grad again diverged from the FD reference by many orders of magnitude due to the stiff ionic dynamics
+Forward-mode derivatives agreed closely with the FD reference across all five parameters with mean absolute deviation ~1.5%, maximum ~5.3%. Both of these were found within the benchmark's stability criterion whereas reverse-mode jax.grad diverged from the FD reference by many orders of magnitude due to the stiff ionic dynamics
 
 This example extends the differentiability test beyond the simplified 3D cube to a geometry **extracted directly from the patient-specific LA anatomy**, while retaining the simulated HD-grid omnipolar EGM generation pipeline. The patch test and outputs can be reproduced with `patch_differentiability_showcase.py`; the extracted geometry is provided as `patch_geometry.npz`.
 
@@ -214,7 +214,7 @@ Overall, these tests establish that JAX-EP provides a **fully differentiable car
 
 ### Parameter Learning Results (NVIDIA Tesla P100)
 
-The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters — `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL` — from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
+The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
 
 Recovery proceeds in two stages. **Phase 1** uses a Nelder–Mead curriculum that progressively fits the S2 electrogram's mean-squared error and shape-derived features (activation time, slew rate, peak-to-peak amplitude, activation-recovery interval) across all nine cliques. **Phase 2** refines this fit using finite-difference-gradient L-BFGS-B on the combined S1+S2 mean-squared error.
 
