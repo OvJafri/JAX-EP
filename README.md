@@ -209,7 +209,7 @@ Overall, these tests establish that JAX-EP provides a **fully differentiable car
 
 
 ### Parameter Inversion Results (NVIDIA Tesla P100)
-The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a 7-level Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
+The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
 * **Median Absolute Percentage Error:** 0.032%
 * **Exact Recovery:** Recovers `tau_in` and `G_IL` exactly to 3 decimal places across all trials.
