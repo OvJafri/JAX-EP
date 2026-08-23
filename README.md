@@ -126,9 +126,10 @@ To ensure a comparable test with similar spatial and temporal resolution as comp
 </table>
 
 The GPU reduced the forward simulation time by **43×** while producing an activation map numerically identical to the CPU implementation.
+
 ## Solver Differentiability
 
-A central feature of JAX-EP is the ability to differentiate through the complete cardiac electrophysiology simulation pipeline. This enables gradients of simulated electrophysiological observables with respect to both cellular and tissue parameters, providing the foundation for gradient-based parameter inference.
+A central feature of JAX-EP is its end-to-end differentiability, enabling gradients to be propagated through the complete cardiac electrophysiology simulation pipeline. This provides direct derivatives of simulated electrophysiological observables with respect to cellular and tissue parameters, forming the foundation for gradient-based parameter inference and personalised electrophysiological model calibration.
 
 Differentiability was explicitly verified using a 3D tissue sample consisting of **18,432 nodes and 36,860 elements**, with a spatial resolution of `dx = 0.2 mm`, a time step of `DT = 0.1 ms`, and `N_T = 11,100` time steps corresponding to a total simulation time of 1110 ms. The benchmark compares finite-difference (FD) gradients against both reverse-mode (`jax.grad`) and forward-mode (`jax.jacfwd`) automatic differentiation.
 
