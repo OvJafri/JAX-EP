@@ -325,7 +325,7 @@ Although the APD restitution curve was reproduced with high accuracy, the result
 This 0D experiment therefore provides two complementary validations: **(i)** JAX-EP can differentiate through the cellular dynamics and recover parameters that strongly influence restitution behaviour, and **(ii)** matching APD restitution does not necessarily imply unique recovery of the underlying ionic parameters. This motivates the use of richer electrophysiological observables, including electrogram morphology and activation-related features, in the subsequent spatial parameter-learning framework.
 
 The 0D parameter-learning experiment can be reproduced using the corresponding script in the `parameter_learning/` directory. The generated animation is saved as `0D_parameter_recovery.gif`.
-### Parameter Learning Results (NVIDIA Tesla P100)
+### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
 
 The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
 
