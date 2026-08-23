@@ -70,7 +70,7 @@ Each component runs independently from within its own local subdirectory. Always
   python run_forward.py
   python run_cpu_gpu_comparison.py
   ```
-* **To evaluate parameter sensitivities using JAX-EP end-to-end differentiable simulations, i.e. $\partial\mathcal{L}/\partial\theta$:**
+* **To evaluate gradients using JAX-EP end-to-end differentiable simulations, i.e. $\partial\mathcal{L}/\partial\theta$:**
   ```bash
   cd parameter_learning/
   python run_differentiability_cpu_gpu.py
