@@ -232,6 +232,37 @@ Recovery proceeds in two stages. **Phase 1** uses a Nelder–Mead curriculum tha
 
 These results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
 
+## 📄 Manuscript
+
+### *JAX-EP: A Fully Differentiable Monodomain Solver for Cardiac Electrophysiology*
+
+| Feature | Details |
+| :--- | :--- |
+| **Journal** | *Scientific Reports* |
+| **Article Type** | Research Article |
+| **Status** | 🕒 **Submitted — Under Review** |
+| **Submission ID** | `af513ee8-0cb8-4b37-acaf-48f025f84f16` |
+| **Version** | v1.0 |
+
+**Authors:**  
+Ovais Ahmed Jaffery¹`*`, Mahmoud Ehnesh², H Valli¹, Gregory Slabaugh¹, Edward J. Vigmond⁴, Shouvik Haldar²,³, Caroline H. Roney¹
+
+**Affiliations:**  
+* ¹ Queen Mary’s Digital Environment Research Institute (DERI), London, UK  
+* ² Cardiovascular Imaging Department, Royal Brompton & Harefield Hospitals, Guy’s and St Thomas’ NHS Foundation Trust, London, UK  
+* ³ National Heart and Lung Institute, Imperial College London, London, UK  
+* ⁴ IHU Liryc, The Heart Rhythm Disease Institute, Fondation Bordeaux Université, Pessac, France  
+* `*` *Corresponding author:* o.jaffery@qmul.ac.uk
+
+---
+
+### About This Repository
+
+This repository provides the official implementation and computational framework described in our submitted study. **JAX-EP** leverages the high-performance computing capabilities of JAX to introduce a fully differentiable monodomain solver designed for cardiac electrophysiology. By tracking cellular dynamics across spatial dimensions with automatic differentiation, this framework unlocks efficient parameter-learning workflows and inverse modeling. It contains all code necessary to reproduce the paper's core findings, including **differentiability benchmarks**, **validation experiments**, and **gradient-based optimization routines**.
+
+> [!NOTE]  
+> This manuscript is currently undergoing peer review at *Scientific Reports*. The code is fully functional, and updates will be pushed dynamically to match any future revisions.
+
 ---
 ## Further Reading
 
