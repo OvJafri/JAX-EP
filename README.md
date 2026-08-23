@@ -147,7 +147,7 @@ For the tested ionic parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`) a
 | `tau_close` | 1.0544e-03 | 1.0544e-03 | 1.0000 |
 | `G_IL` | -3.1939e-04 | -3.2335e-04 | 1.0124 |
 
-The forward-mode derivatives were stable for all tested parameters, with the largest deviation from the finite-difference reference being approximately **2.3%**.
+The forward-mode derivatives were stable across all tested parameters, with the largest deviation from the finite-difference reference of approximately **2.3%**. These gradient comparisons can be reproduced and visualised using `plot_gradients.py`.
 
 ### Reverse-Mode Automatic Differentiation
 
