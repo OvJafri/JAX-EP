@@ -318,6 +318,33 @@ Although the APD restitution curve was reproduced with high accuracy, the result
 This 0D experiment therefore provides two complementary validations: **(i)** JAX-EP can differentiate through the cellular dynamics and recover parameters that strongly influence restitution behaviour, and **(ii)** matching APD restitution does not necessarily imply unique recovery of the underlying ionic parameters. This motivates the use of better EP observables, including EGM morphology and activation-related features, in the subsequent 3D LA patient specific parameter-learning framework.
 
 The 0D parameter-learning experiment can be reproduced using the corresponding script in the `parameter_learning/` directory. The generated animation is saved as `0D_parameter_recovery.gif`.
+
+### 1D Fiber Scale Parameter Learning
+
+Fiber scale framework extends parameter learning from the isolated 0D cell to a **1D spatial fibre**, introducing tissue propagation and EGM generation while retaining the four cellular kinetic parameters: `tau_in`, `tau_out`, `tau_open`, and `tau_close`.
+
+A 1D fibre comprising **150 nodes** is simulated using the modified Mitchell Schaeffer model with fixed spatial diffusion and a spatially separated electrode configuration for bipolar EGM generation. The target simulations use multiple parameter sets sampled within predefined physiological bounds for the four ionic parameters. These bounds were informed by the parameter ranges reported by Corrado et al. [1] and provide the search space for the JAX based inversion. The optimizer is constrained to this bounded parameter space, while the corresponding ground truth values are withheld throughout the inversion.
+
+| Parameter | Bounded search range |
+| :--- | ---: |
+| `tau_in` | 0.12–0.33 |
+| `tau_out` | 2.3–7.7 |
+| `tau_open` | 95–185 |
+| `tau_close` | 89–161 |
+
+The optimization uses a **three phase curriculum** implemented within the JAX based inversion framework:
+
+1. **Phase 1:** Adam optimization of the 0D APD restitution curve across a range of S2 coupling intervals.
+2. **Phase 2:** Adam optimization using 1D EGM derived features, including activation recovery interval, activation timing, maximum slew rate, and EGM amplitude, together with a reduced APD restitution loss.
+3. **Phase 3:** Final waveform refinement using **L BFGS B**, with gradients computed using **forward mode automatic differentiation** through the complete 1D simulation. The objective combines the full 1D bipolar EGM mean squared error with the APD restitution loss.
+
+A key outcome of this experiment was the identification of **bipolar EGM waveforms as an information rich optimization target** for constraining the parameters of the ionic cellular model. In contrast, the preceding 0D experiment demonstrated that an APD restitution curve can be reproduced with very high accuracy while still allowing substantially different combinations of ionic parameters to produce similar restitution behaviour. The addition of spatial propagation and bipolar EGM morphology provides complementary information that substantially improves parameter identifiability.
+
+Under the controlled 1D setup, the optimization achieved **perfect identification of the four unknown ionic parameters**. However, this experiment has an important limitation: **longitudinal conductivity `G_IL` was prescribed as an input and was not included as a learnable parameter**. Fixing `G_IL` isolates the ionic kinetics and demonstrates their recovery within the JAX based inversion framework, but it does not establish simultaneous identifiability of ionic and tissue conductivity parameters at the 1D fibre scale.
+
+This experiment therefore provides an important intermediate step between **0D cellular parameter recovery** and the subsequent **3D LA parameter learning** workflow, demonstrating how spatial EGM information can improve parameter identifiability while also highlighting the need to jointly constrain tissue conductivity in more complex geometries.
+
+The experiment can be reproduced using the corresponding script in `parameter_learning/`.
 ### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
 
 The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals. (parameter_learning/`plot_la_patch_9cliques_egm.py` can be used to plot the clinical type Omnipolar EGMs simulated using our differentiable JAX-EP monodomain solver) 
