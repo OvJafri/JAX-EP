@@ -18,7 +18,7 @@ The repository is organized into four interconnected core components:
 
 
 JAX-EP brings scalable GPU-accelerated cardiac monodomain modelling to gradient-based parameter learning, exposing gradients of EP model outputs with respect to model parameters. It achieves:
-1. **Accelerated Forward Models**: Over 50x GPU-to-CPU simulation speedups using Custom Crank-Nicolson solvers and `jax.jit`.
+1. **Accelerated Forward Models**: Over 50x GPU-to-CPU simulation speedups using Custom Crank-Nicolson solver [4] and `jax.jit`.
 2. **Stable Gradients**: Leverages forward-mode automatic differentiation (`jax.jacfwd`) and gradient checkpointing (`jax.checkpoint`) to navigate stiff, long-time ionic chains.
 3. **Automated Parameter Optimization**: Blindly recovers hidden physiological settings using a multi-stage curriculum.
 
@@ -247,3 +247,5 @@ For individual component deep-dives, mathematical validations, structural nuance
 [2] Corrado, C. & Niederer, S. A. (2016). *A two-variable model robust to pacemaker behaviour for the dynamics of the cardiac action potential*. **Mathematical Biosciences, 281**, 46–54.
 
 [3] Plank, G., Loewe, A., Neic, A., Augustin, C., Huang, Y.-L., Gsell, M. A. F., Karabelas, E., Nothstein, M., Prassl, A. J., Sánchez, J. & others (2021). *The openCARP simulation environment for cardiac electrophysiology*. **Computer Methods and Programs in Biomedicine, 208**, 106223.
+
+[4] Sundnes, J., Lines, G. T., Cai, X., Nielsen, B. F., Mardal, K.-A. & Tveito, A. (2007). Computing the Electrical Activity in the Heart. Springer, 1.
