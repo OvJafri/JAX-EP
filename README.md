@@ -228,9 +228,11 @@ Recovery proceeds in two stages. **Phase 1** uses a Nelder–Mead curriculum tha
 | **set2** | 0.000025     | 1.09e-09     | 50                    | 13.7 min          |
 | **set3** | 0.000045     | 2.95e-07     | 11                    | 3.3 min           |
 
-These results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
----
 
+
+These results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
+
+---
 ## Further Reading
 
 For individual component deep-dives, mathematical validations, structural nuances, and complete data formats, refer to the relevant text files located directly within each subfolder.
