@@ -330,10 +330,10 @@ $\tau_\mathrm{in}\in[0.05,0.4]$,
 $\tau_\mathrm{out}\in[0.5,9.5]$,
 $\tau_\mathrm{open}\in[65,215]$, and
 $\tau_\mathrm{close}\in[65,185]$.
-<div style="width:950px;height:450px;overflow:hidden;">
+<div style="width:950px;height:350px;overflow:hidden;">
   <img src="parameter_learning/1D_fiber/1D_egm_recovery_v3.gif"
        alt="JAX-EP 1D fiber scale parameter learning"
-       style="width:950px;margin-top:-500px;">
+       style="width:950px;margin-top:-80px;">
 </div>
 
 
