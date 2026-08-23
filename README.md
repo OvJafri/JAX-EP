@@ -213,17 +213,22 @@ Overall, these tests establish that JAX-EP provides a **fully differentiable car
 
 
 ### Parameter Learning Results (NVIDIA Tesla P100)
-The framework optimizes parameters under strict blind criteria using an S1-S2 pacing protocol. The tracking engine uses a Nelder-Mead shape-fitting curriculum followed by L-BFGS-B gradient refinement.
+
+The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters — `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL` — from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals.
+
+Recovery proceeds in two stages. **Phase 1** uses a Nelder–Mead curriculum that progressively fits the S2 electrogram's mean-squared error and shape-derived features (activation time, slew rate, peak-to-peak amplitude, activation-recovery interval) across all nine cliques. **Phase 2** refines this fit using finite-difference-gradient L-BFGS-B on the combined S1+S2 mean-squared error.
+
 * **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
 * **Median Absolute Percentage Error:** 0.032%
 * **Exact Recovery:** Recovers `tau_in` and `G_IL` exactly to 3 decimal places across all trials.
 
-| Case | Phase 1 Loss | Phase 2 Loss | Evals (P2) | Wall Time |
-| :--- | :----------- | :----------- | :--------- | :-------- |
-| **set1** | 0.000094     | 1.15e-09     | 18         | 5.7 min   |
-| **set2** | 0.000025     | 1.09e-09     | 50         | 13.7 min  |
-| **set3** | 0.000045     | 2.95e-07     | 11         | 3.3 min   |
+| Case | Phase 1 Loss | Phase 2 Loss | Phase 2 Evaluations | Total Wall Time |
+| :--- | :----------- | :----------- | :------------------- | :--------------- |
+| **set1** | 0.000094     | 1.15e-09     | 18                    | 5.7 min           |
+| **set2** | 0.000025     | 1.09e-09     | 50                    | 13.7 min          |
+| **set3** | 0.000045     | 2.95e-07     | 11                    | 3.3 min           |
 
+These results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
 ---
 
 ## Further Reading
