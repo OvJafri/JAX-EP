@@ -198,7 +198,7 @@ For the representative `set3` case, `jax.jacfwd` remained stable for all five pa
 | `tau_close` | 2.7259e+00 | 2.7538e+00 | 1.0103 |
 | `G_IL` | -2.7231e+04 | -2.7209e+04 | 0.9992 |
 
-The largest deviation from the FD reference was approximately **5.3%**, with all five forward-mode derivatives remaining within the stability criterion used by the benchmark. In contrast, reverse-mode `jax.grad` again produced severe gradient amplification, with derivatives diverging from the FD reference by many orders of magnitude due to the stiff ionic dynamics.
+Forward-mode derivatives agreed closely with the FD reference across all five parameters — mean absolute deviation ~1.5%, maximum ~5.3%, both within the benchmark's stability criterion — whereas reverse-mode jax.grad again diverged from the FD reference by many orders of magnitude due to the stiff ionic dynamics
 
 This example extends the differentiability test beyond the simplified 3D cube to a geometry **extracted directly from the patient-specific LA anatomy**, while retaining the simulated HD-grid omnipolar EGM generation pipeline. The patch test and outputs can be reproduced with `patch_differentiability_showcase.py`; the extracted geometry is provided as `patch_geometry.npz`.
 
