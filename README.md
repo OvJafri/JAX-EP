@@ -325,12 +325,12 @@ The fibre scale framework extends parameter learning from the isolated 0D cell t
 
 A 1D fibre with **150 nodes** is simulated using the modified Mitchell Schaeffer model with fixed spatial diffusion. Multiple parameter sets are sampled within physiological bounds informed by Corrado et al. [1]:
 
-| Parameter | Bounded search range |
-| :--- | ---: |
-| `tau_in` | $0.12 \leq \tau_\mathrm{in} \leq 0.33$ |
-| `tau_out` | $2.3 \leq \tau_\mathrm{out} \leq 7.7$ |
-| `tau_open` | $95 \leq \tau_\mathrm{open} \leq 185$ |
-| `tau_close` | $89 \leq \tau_\mathrm{close} \leq 161$ |
+| Bounded search range |
+| :--- |
+| $0.12 \leq \tau_\mathrm{in} \leq 0.33$ |
+| $2.3 \leq \tau_\mathrm{out} \leq 7.7$ |
+| $95 \leq \tau_\mathrm{open} \leq 185$ |
+| $89 \leq \tau_\mathrm{close} \leq 161$ |
 
 The three phase JAX based optimization uses:
 
