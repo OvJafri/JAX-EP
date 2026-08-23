@@ -229,30 +229,88 @@ Representative points across the S2 restitution range are shown below. The compl
 
 <table>
   <tr>
-    <td valign="top">
-
-| S2 (ms) | APD GT (ms) | APD Rec. (ms) | Error (ms) | Error (%) |
-| :---: | ---: | ---: | ---: | ---: |
-| 500 | 252.158 | 252.753 | +0.595 | 0.24 |
-| 470 | 246.147 | 246.539 | +0.392 | 0.16 |
-| 430 | 234.754 | 234.834 | +0.079 | 0.03 |
-| 400 | 222.398 | 222.227 | −0.171 | 0.08 |
-| 370 | 204.872 | 204.488 | −0.384 | 0.19 |
-| 340 | 178.869 | 178.465 | −0.404 | 0.23 |
-| 320 | 153.567 | 153.496 | −0.072 | 0.05 |
-| 300 | 116.855 | 117.951 | +1.096 | 0.94 |
-
-</td>
-<td valign="middle" align="center">
+    <td width="52%" valign="middle" align="center">
 
 <img src="parameter_learning/0D_parameter_recovery.gif" alt="0D parameter recovery and APD restitution fitting" width="500">
+
+</td>
+<td width="48%" valign="middle">
+
+<table>
+  <thead>
+    <tr>
+      <th align="center"><sub>S2 (ms)</sub></th>
+      <th align="center"><sub>APD GT</sub></th>
+      <th align="center"><sub>APD Rec.</sub></th>
+      <th align="center"><sub>Error</sub></th>
+      <th align="center"><sub>Error (%)</sub></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><sub>500</sub></td>
+      <td align="right"><sub>252.158</sub></td>
+      <td align="right"><sub>252.753</sub></td>
+      <td align="right"><sub>+0.595</sub></td>
+      <td align="right"><sub>0.24</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>470</sub></td>
+      <td align="right"><sub>246.147</sub></td>
+      <td align="right"><sub>246.539</sub></td>
+      <td align="right"><sub>+0.392</sub></td>
+      <td align="right"><sub>0.16</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>430</sub></td>
+      <td align="right"><sub>234.754</sub></td>
+      <td align="right"><sub>234.834</sub></td>
+      <td align="right"><sub>+0.079</sub></td>
+      <td align="right"><sub>0.03</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>400</sub></td>
+      <td align="right"><sub>222.398</sub></td>
+      <td align="right"><sub>222.227</sub></td>
+      <td align="right"><sub>−0.171</sub></td>
+      <td align="right"><sub>0.08</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>370</sub></td>
+      <td align="right"><sub>204.872</sub></td>
+      <td align="right"><sub>204.488</sub></td>
+      <td align="right"><sub>−0.384</sub></td>
+      <td align="right"><sub>0.19</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>340</sub></td>
+      <td align="right"><sub>178.869</sub></td>
+      <td align="right"><sub>178.465</sub></td>
+      <td align="right"><sub>−0.404</sub></td>
+      <td align="right"><sub>0.23</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>320</sub></td>
+      <td align="right"><sub>153.567</sub></td>
+      <td align="right"><sub>153.496</sub></td>
+      <td align="right"><sub>−0.072</sub></td>
+      <td align="right"><sub>0.05</sub></td>
+    </tr>
+    <tr>
+      <td align="center"><sub>300</sub></td>
+      <td align="right"><sub>116.855</sub></td>
+      <td align="right"><sub>117.951</sub></td>
+      <td align="right"><sub>+1.096</sub></td>
+      <td align="right"><sub>0.94</sub></td>
+    </tr>
+  </tbody>
+</table>
 
 </td>
   </tr>
 </table>
 
 Across the complete restitution curve (**S2 = 300–500 ms**), the recovered model achieved a **mean absolute APD error of 0.337 ms (0.18%)**, with a maximum error of **1.096 ms (0.94%)**.
-
 #### Parameter Recovery
 
 Although the APD restitution curve was reproduced with high accuracy, the results also demonstrate an important property of inverse cellular modelling: **APD restitution alone does not uniquely constrain all ionic parameters**. In particular, `tau_in` and `tau_out` exhibited substantially different recovered values while producing an almost identical restitution curve.
