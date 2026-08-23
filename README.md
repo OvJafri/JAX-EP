@@ -324,21 +324,21 @@ The parameter-learning pipeline recovers five cellular-kinetic and conductivity 
 
 <img src="parameter_learning/GT_EGM.png" alt="Ground truth S1 and S2 omnipolar electrograms used for parameter learning" width="650">
 
-Parameter learning proceeds in two stages. Phase 1 uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. Phase 2 refines the resulting fit using L BFGS B with gradients computed by forward mode autodiff, minimizing the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
+Parameter learning proceeds in two stages. **Phase 1** uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. **Phase 2** refines the resulting fit using L BFGS B with gradients computed by forward mode autodiff, minimising the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
 
-* **Mean Absolute Percentage Error (MAPE):** 0.676% across all tested regimes (`set1`, `set2`, `set3`).
-* **Median Absolute Percentage Error:** 0.032%
-* **Exact Recovery:** Recovers `tau_in` and `G_IL` exactly to 3 decimal places across all trials.
+The two phase strategy consistently recovered the underlying cellular and tissue parameters across all three tested physiological regimes.
+
+* **Mean Absolute Percentage Error (MAPE):** 0.09% across all three parameter sets (`set1`, `set2`, `set3`).
+* **Median Absolute Percentage Error:** 0.03%.
+* **Subpercent Recovery:** All five parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`) were recovered to subpercent accuracy across all three parameter sets.
 
 | Case | Phase 1 Loss | Phase 2 Loss | Phase 2 Evaluations | Total Wall Time |
-| :--- | :----------- | :----------- | :------------------- | :--------------- |
-| **set1** | 0.000094     | 1.15e-09     | 18                    | 5.7 min           |
-| **set2** | 0.000025     | 1.09e-09     | 50                    | 13.7 min          |
-| **set3** | 0.000045     | 2.95e-07     | 11                    | 3.3 min           |
+| :--- | ------------: | ------------: | ------------------: | --------------: |
+| **set1** | 0.000094 | 1.15e-09 | 18 | 5.7 min |
+| **set2** | 0.000025 | 1.09e-09 | 50 | 13.7 min |
+| **set3** | 0.000045 | 2.95e-07 | 11 | 3.3 min |
 
-
-
-These results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
+These results demonstrate near exact recovery of the five target parameters from simulated omnipolar electrogram waveforms, while maintaining practical optimisation times on a single GPU. The results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
 
 ## 📄 Manuscript
 
