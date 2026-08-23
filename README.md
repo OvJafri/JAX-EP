@@ -72,8 +72,10 @@ Each component runs independently from within its own local subdirectory. Always
   ```
 * **To evaluate gradients using JAX-EP end-to-end differentiable simulations, i.e. $\partial\mathcal{L}/\partial\theta$:**
   ```bash
-  cd parameter_learning/
+  cd differentiability/3D_cube
   python run_differentiability_cpu_gpu.py
+
+  cd differentiability/LA_patch
   python patch_differentiability_showcase.py
   ```
 
