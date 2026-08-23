@@ -157,7 +157,7 @@ This behaviour was observed consistently across both CPU and GPU executions, ind
 
 ### Differentiable Electrogram Generation
 
-The differentiability extends beyond the transmembrane voltage state to derived electrophysiological observables. A bipolar EGM configuration using two spatially separated electrode regions was included in the benchmark. Forward-mode differentiation again reproduced the finite-difference gradients with close agreement, including for `G_IL`.
+The differentiability extends beyond the transmembrane voltage state to derived electrophysiological observables. A bipolar EGM configuration using two spatially separated electrode regions (0.3 mm inter electrode gap) was included in the benchmark. Forward-mode differentiation again reproduced the finite-difference gradients with close agreement, including for `G_IL`.
 
 | Parameter | FD Gradient | `jax.jacfwd` | Ratio |
 | :--- | ---: | ---: | ---: |
