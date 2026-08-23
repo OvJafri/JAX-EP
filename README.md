@@ -231,7 +231,7 @@ Representative points across the S2 restitution range are shown below. The compl
   <tr>
     <td width="52%" valign="middle" align="center">
 
-<img src="parameter_learning/0D_parameter_recovery.gif" alt="0D parameter recovery and APD restitution fitting" width="500">
+<img src="parameter_learning/0D_cellular/0D_parameter_recovery.gif" alt="0D parameter recovery and APD restitution fitting" width="500">
 
 </td>
 <td width="48%" valign="middle">
