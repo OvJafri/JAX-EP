@@ -367,7 +367,7 @@ Ovais Ahmed Jaffery¹`*`, Mahmoud Ehnesh², H Valli¹, Gregory Slabaugh¹, Edwar
 This repository provides the official implementation and computational framework described in our submitted study. **JAX-EP** leverages the high-performance computing capabilities of JAX to introduce a fully differentiable monodomain solver designed for cardiac electrophysiology. By tracking cellular dynamics across spatial dimensions with automatic differentiation, this framework unlocks efficient parameter-learning workflows and inverse modeling. 
 
 > [!NOTE]  
-> This manuscript is currently undergoing peer review at *Scientific Reports*. The code uploaded on this repository contained representative examples with functional parameter learning, and updates will be pushed dynamically to match any future revisions. Clinical data from the HEAT-AF investigation [5] has been withheld from this repository to comply with patient privacy laws and data-sharing restrictions.
+> This manuscript is currently submitted as a research article at *Scientific Reports* and is presently at initial stages of review/editor approval. The code uploaded on this repository contained representative examples with functional parameter learning, and updates will be pushed dynamically to match any future revisions. Clinical data from the HEAT-AF investigation [5] has been withheld from this repository to comply with patient privacy laws and data-sharing restrictions.
 
 
 ---
