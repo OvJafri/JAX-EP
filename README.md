@@ -337,7 +337,7 @@ $\tau_\mathrm{close}\in[65,185]$.
 </div>
 
 
-The three phase JAX based optimization uses:
+The three phase JAX based optimization uses (\parameter_learning\1D_fiber\'run_1D_egm_parameter_recovery.py'):
 
 1. **Phase 1:** Adam optimization of the 0D APD restitution curve.
 2. **Phase 2:** Adam optimization of 1D EGM features, including activation recovery interval, activation timing, maximum slew rate, and EGM amplitude, with a reduced restitution loss.
