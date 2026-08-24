@@ -363,7 +363,7 @@ The two phase strategy consistently recovered the underlying cellular and tissue
 * **Median Absolute Percentage Error:** 0.03%.
 * **Subpercent Recovery:** All five parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`) were recovered to subpercent accuracy across all three parameter sets.
 
-<img src="parameter_learning/results_param_table_figure.png" alt="3DLA parameter learning" width="750">
+<img src="parameter_learning/3D_LA/result_param_table_figure.png" alt="3DLA parameter learning" width="750">
 
 | Case | Phase 1 Loss | Phase 2 Loss | Phase 2 Evaluations | Total Wall Time |
 | :--- | ------------: | ------------: | ------------------: | --------------: |
