@@ -80,8 +80,16 @@ Each component runs independently from within its own local subdirectory. Always
   ```
 * **To learn parameters from omnipolar EGM recordings**
   ```bash
-  cd parameter_learning
+  cd parameter_learning/0D_cellular
+  python run_0D_parameter_recovery.py
+
+  cd parameter_learning/1D_fiber
+  python run_1D_egm_parameter_recovery.py
+
+  cd parameter_learning/3D_LA
+  python plot_gt_egm_9cliques.py  (for visualizing/plotting ground truth for parameter learning)
   python parameter_learning_patch_geometry.py
+  
   ```
 ---
 
