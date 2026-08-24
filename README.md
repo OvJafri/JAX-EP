@@ -87,7 +87,7 @@ Each component runs independently from within its own local subdirectory. Always
   python run_1D_egm_parameter_recovery.py
 
   cd parameter_learning/3D_LA
-  python plot_gt_egm_9cliques.py  (for visualizing/plotting ground truth for parameter learning)
+  python plot_gt_egm_9cliques.py  (visualizing/plotting ground truth)
   python parameter_learning_patch_geometry.py
   
   ```
