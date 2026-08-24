@@ -354,7 +354,7 @@ Bipolar EGMs proved to be an **information rich target for constraining ionic pa
 <img src="parameter_learning/1D_fiber/Recovery_Consolidated_C6.png" alt="JAX-EP 1D fiber scale parameter learning" width="650">
 
 A limitation of this fibre scale experiment is that **longitudinal conductivity `G_IL` is prescribed and not learned**. This isolates ionic parameter recovery within the JAX based inversion framework but does not demonstrate simultaneous identification of ionic and tissue conductivity parameters.
-The experiment can be reproduced using the corresponding script in `parameter_learning/`.
+
 ### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
 
 The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals. (parameter_learning/`plot_la_patch_9cliques_egm.py` can be used to plot the clinical type Omnipolar EGMs simulated using our differentiable JAX-EP monodomain solver) 
