@@ -325,7 +325,8 @@ Although the APD restitution curve was reproduced with high accuracy, the result
 
 This 0D experiment therefore provides two complementary validations: **(i)** JAX-EP can differentiate through the cellular dynamics and recover parameters that strongly influence restitution behaviour, and **(ii)** matching APD restitution does not necessarily imply unique recovery of the underlying ionic parameters. This motivates the use of better EP observables, including EGM morphology and activation-related features, in the subsequent 3D LA patient specific parameter-learning framework.
 
-The 0D parameter-learning experiment can be reproduced using the corresponding script in the `parameter_learning/` directory. The generated animation is saved as `0D_parameter_recovery.gif`.
+The 0D parameter-learning experiment can be reproduced using the corresponding script 
+  'python run_1D_egm_parameter_recovery.py` in the parameter_learning/1D_fiber directory. The generated animation is saved as `0D_parameter_recovery.gif`.
 
 ### 1D Fiber Scale Parameter Learning
 
