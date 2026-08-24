@@ -78,7 +78,7 @@ Each component runs independently from within its own local subdirectory. Always
   cd differentiability/LA_patch
   python patch_differentiability_showcase.py
   ```
-* **To learn parameters from omnipolar EGM recordings**
+* **To learn parameters from EGM recordings**
   ```bash
   cd parameter_learning/0D_cellular
   python run_0D_parameter_recovery.py
