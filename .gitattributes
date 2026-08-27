@@ -1,0 +1,9 @@
+# Force GitHub/Linguist to ignore HTML files in language statistics
+*.html linguist-vendored
+
+# Ensure Python scripts and Jupyter Notebooks dominate the language statistics
+*.py linguist-detectable=true
+*.ipynb linguist-language=Python
+
+# Treat any documentation folders as non-code documentation assets
+docs/**/* linguist-documentation=true
