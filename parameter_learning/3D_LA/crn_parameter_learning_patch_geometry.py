@@ -16,11 +16,11 @@ Pipeline (as in the paper)
   removable 0/0 points of the rate functions evaluated by their exact limits (CRN_SAFE_POLES = 1).
 
 Inputs (no clinical mesh is needed)
-  ../patch_geometry.npz                                LA patch (2,894 nodes), HD grid, fibres, pacing edge (shared with mMS)
-  <GT_DIR>/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz     target EGMs (no parameters inside)
-  <GT_DIR>/egm_pipeline_for_jax_{case}/gt_crn_truth_{case}.json  optional; used only AFTER the fit for MAPE
+  patch_geometry.npz                                   LA patch (2,894 nodes), HD grid, fibres, pacing edge (shared with mMS)
+  CRN/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz     target EGMs (no parameters inside)
+  CRN/egm_pipeline_for_jax_{case}/gt_crn_truth_{case}.json  optional; used only AFTER the fit for MAPE
 
-Run from parameter_learning/3D_LA/CRN:   python crn_parameter_learning_patch_geometry.py
+Run from parameter_learning/3D_LA:   python crn_parameter_learning_patch_geometry.py
 
 Outputs (WORK_DIR)
   results_crn_{case}_*.npz, crn_fit_{case}_*.png, p1_cache_crn_{case}_*.npz
@@ -41,9 +41,9 @@ NP_DTYPE = np.float64
 # ══════════════════════════════════════════════════════════════════════════
 # [0] PATHS + TRUTH
 # ══════════════════════════════════════════════════════════════════════════
-PATCH_GEOMETRY_PATH = os.environ.get("PATCH_GEOMETRY_PATH", "../patch_geometry.npz")   # 3D_LA/patch_geometry.npz (run from 3D_LA/CRN)
+PATCH_GEOMETRY_PATH = os.environ.get("PATCH_GEOMETRY_PATH", "patch_geometry.npz")   # 3D_LA/patch_geometry.npz (shared with mMS)
 PARAM_NAMES = ['m_gNa', 'm_gto', 'm_gKr', 'm_gCaL', 'm_gK1', 'G_IL']
-CASES = os.environ.get("CASES", "set1,set5,set2").split(",")
+CASES = os.environ.get("CASES", "set1,set2,set3").split(",")   # paper Sets I, II, III
 
 # ── Physics (same as mMS GT script) ─────────────────────────────────────────
 BETA = float(os.environ.get("BETA", 140.)); CM = 1.     # beta = 140 (as in the CRN Colab script; mMS GT used 100)
@@ -529,7 +529,7 @@ def check_0d(p6, label, bcl=500., nbeats=3, n_ion=N_ION):
 # ══════════════════════════════════════════════════════════════════════════
 from scipy.optimize import minimize
 
-GT_DIR   = os.environ.get("GT_DIR", ".")              # folder holding egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz
+GT_DIR   = os.environ.get("GT_DIR", "CRN")            # 3D_LA/CRN/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz
 GT_FILE  = os.environ.get("GT_FILE", "gt_crn_egm_{case}.npz")
 WORK_DIR = os.environ.get("WORK_DIR", "./crn_results")
 os.makedirs(WORK_DIR, exist_ok=True)
