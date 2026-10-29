@@ -196,9 +196,12 @@ The forward-mode derivatives were stable across all tested parameters, with the 
 
 ### Reverse-Mode Autodiff
 
-In contrast, direct reverse-mode differentiation using `jax.grad` produced severe gradient amplification for the stiff ionic dynamics. The resulting derivatives differed from the finite-difference reference by several orders of magnitude, making the gradients unsuitable for stable parameter optimization in this configuration.
+In low-dimensional settings, reverse-mode differentiation (`jax.grad`) is used directly for parameter learning:
 
-This behaviour was observed consistently across both CPU and GPU executions, indicating that the issue originates from the differentiation of the stiff ionic time integration rather than the computational device.
+* **0D cell** (`parameter_learning/0D_cellular/run_0D_parameter_recovery.py`): the APD-restitution fit is driven by `jax.grad` with Adam.
+* **1D fibre, 150 nodes** (`parameter_learning/1D_fiber/run_1D_egm_parameter_recovery.py`): Phases 1 and 2 use `jax.value_and_grad` with Adam. For the final waveform-MSE refinement (Phase 3), the script switches to forward-mode gradients (`jax.jvp`) with L-BFGS-B, which converged more reliably. The 1D fibre is therefore the clearest example of the hand-over from reverse to forward mode (see [1D Fiber Scale Parameter Learning](#1d-fiber-scale-parameter-learning)).
+
+At higher dimensions (the 3D cube and the patient-specific LA patch, thousands of nodes over N_T = 11,100 time steps), `jax.grad` was not used for parameter learning. For mMS, direct reverse-mode differentiation produced severe gradient amplification through the stiff ionic dynamics: the resulting derivatives differed from the finite-difference reference by several orders of magnitude, making them unsuitable for stable parameter optimization in this configuration. This behaviour was observed consistently across both CPU and GPU executions, indicating that the issue originates from the differentiation of the stiff ionic time integration rather than the computational device. All 3D parameter learning therefore uses forward-mode gradients (`jax.jacfwd`).
 
 ### Differentiable Electrogram Generation
 
