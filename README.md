@@ -1,5 +1,5 @@
 # JAX-EP: Differentiable Cardiac Electrophysiology Framework
-JAX-EP is a fully differentiable cardiac EP solver and parameter-inversion framework built in JAX [1], enabling GPU-accelerated monodomain simulations and gradient-based inference of personalised tissue and cellular EP parameters. This repository contains the JAX-EP parameter-learning pipeline: recovering five cell-kinetics and conductivity parameters from simulated omnipolar electrograms (EGMs). The codebase progresses systematically from cellular-level validation through left-atrial (LA) forward simulation to parameter learning on a full 3D LA manifold.
+JAX-EP is a fully differentiable cardiac EP solver and parameter-inversion framework built in JAX [1], enabling GPU-accelerated monodomain simulations and gradient-based inference of personalised tissue and cellular EP parameters. This repository contains the JAX-EP parameter-learning pipeline: recovering cell-kinetics and conductivity parameters from simulated omnipolar electrograms (EGMs) for two ionic models, the modified Mitchell–Schaeffer (mMS, five parameters) and the Courtemanche–Ramirez–Nattel (CRN, six parameters) models. The codebase progresses systematically from cellular-level validation through left-atrial (LA) forward simulation to parameter learning on a full 3D LA manifold.
 
 ## About JAX-EP
 
@@ -10,7 +10,7 @@ The repository is organized into four interconnected core components:
 * **0D Cellular Validation**: Verification of the JAX-based modified Mitchell-Schaeffer (mMS) [1] single-cell EP formulation  against an independent openCARP reference trace to ensure core algorithmic and differentiability consistency.
 * **2D Spatial Validation**: Combined evaluation of the discrete spatial diffusion solver alongside localized ionic kinetics, benchmarked directly via conduction velocity profiles on an idealized 2D flat plate geometry.
 * **Fully Differentiable Monodomain Solver**: Anisotropic Finite Element Method (FEM) propagation mechanics compiled via `jax.jit` and accelerated on modern GPU architectures, showcased through high-performance Left Atrial (LA) forward simulations.
-* **Parameter Inversion Pipeline**: Benefiting from the differentiability of the JAX-EP monodomain solver, a dual-phase optimization pipeline combining multi-stage Nelder–Mead optimization with localized finite-difference L-BFGS-B refinement was developed to recover five cellular-kinetic and conductivity parameters from clinically motivated omnipolar electrograms (EGMs).
+* **Parameter Inversion Pipeline**: Benefiting from the differentiability of the JAX-EP monodomain solver, a dual-phase optimization pipeline combining multi-stage Nelder–Mead optimization with L-BFGS-B refinement using exact forward-mode gradients (`jax.jacfwd`) was developed to recover cellular-kinetic and conductivity parameters (mMS: five; CRN: six) from clinically motivated omnipolar electrograms (EGMs).
 
 
 ---
@@ -64,10 +64,13 @@ Each component runs independently from within its own local subdirectory. Always
   cd benchmark/2D_validation/
   python benchmark2D.py
   ```
-* **To run LA tissue sample (3D cube) using JAX-EP solver and compare CPU/GPU performance (forward simulations):**
+* **To run LA tissue sample (3D cube) using JAX-EP solver and compare CPU/GPU performance (forward simulations), with either ionic model (`IONIC_MODEL=mMS` or `IONIC_MODEL=CRN`):**
   ```bash
   cd forward_model/
-  python run_forward.py
+  export IONIC_MODEL=mMS          # or CRN
+  python run_forward.py           # activation map and conduction velocity
+  python visualize_forward.py     # 2D activation / CV figure
+  python visualize_3d_plotly.py   # interactive 3D view (+ CPU/GPU table)
   python run_cpu_gpu_comparison.py
   ```
 * **To evaluate gradients using JAX-EP end-to-end differentiable simulations, i.e. $\partial\mathcal{L}/\partial\theta$:**
@@ -88,8 +91,8 @@ Each component runs independently from within its own local subdirectory. Always
 
   cd parameter_learning/3D_LA
   python plot_gt_egm_9cliques.py  (visualizing/plotting ground truth)
-  python parameter_learning_patch_geometry.py
-  
+  python parameter_learning_patch_geometry.py          (mMS, 5 parameters)
+  python crn_parameter_learning_patch_geometry.py      (CRN, 6 parameters)
   ```
 ---
 
@@ -100,46 +103,74 @@ Each component runs independently from within its own local subdirectory. Always
 * **LAA Pacing Forward:** 46.8s GPU vs. 2738.6s CPU (**58x Speedup**)
 * **Full Jacobian Matrix ($dAT/dG_{IL}$):** 90.4s GPU vs. 5096.2s CPU (**56x Speedup**)
 
-### 3D Tissue-Sample Cube Forward Performance (NVIDIA Tesla P100)
-To ensure a comparable test with similar spatial and temporal resolution as compared to the patient LA mesh (dx = 0.351mm median edge length, DT = 0.1ms), the cube uses dx = 0.2mm and DT = 0.1ms with N_T = 11,100 timesteps
-* **Forward Simulation:** 57.7s CPU vs. 1.34s GPU (**43× Speedup**)
-* **Activation Map:** Identical CPU and GPU activation patterns
-* **Maximum |AT Difference|:** 0.000 ms
+### 3D Tissue-Sample Cube Forward Performance (NVIDIA A100-PCIE-40GB), mMS and CRN
+To ensure a comparable test with similar spatial and temporal resolution as compared to the patient LA mesh (dx = 0.351mm median edge length, DT = 0.1ms), the cube (19 × 19 × 1.5 mm, **18,432 nodes**) uses dx = 0.2mm and DT = 0.1ms with N_T = 11,100 timesteps (1110 ms), paced from its entire left edge.
+
+The ionic model is selected with a single switch, `IONIC_MODEL = "mMS"` or `"CRN"` (top of each script, or as an environment variable). Model-specific settings are in `forward_model/cube_validation_3d/ionic_models.py`:
+
+| | mMS | CRN |
+| :--- | :--- | :--- |
+| Parameters | `tau_in`, `tau_out`, `tau_open`, `tau_close`, `G_IL` | `g_Na`, `g_to`, `g_Kr`, `g_CaL`, `g_K1` (multipliers of the nominal CRN values), `G_IL` |
+| Nominal values | 0.3, 5.0, 120, 150, 0.35 | 1, 1, 1, 1, 1, 0.35 |
+| Stimulus | 200 (normalised units), 2 ms | 40 pA/pF, 2 ms |
+| Activation threshold | V<sub>norm</sub> = 0.13 | −40 mV |
+| Conduction velocity (cube) | 0.47 m/s | 0.78 m/s |
 
 <table>
   <tr>
     <th>Metric</th>
-    <th>CPU</th>
-    <th>GPU</th>
-    <th>GPU Speed-up</th>
+    <th>mMS CPU</th>
+    <th>mMS GPU</th>
+    <th>CRN CPU</th>
+    <th>CRN GPU</th>
   </tr>
   <tr>
     <td><b>Forward simulation</b></td>
-    <td>57.732 s</td>
-    <td><b>1.342 s</b></td>
-    <td><b>43.0×</b></td>
+    <td>56.656 s</td>
+    <td><b>1.287 s</b></td>
+    <td>253.051 s</td>
+    <td><b>3.639 s</b></td>
+  </tr>
+  <tr>
+    <td><b>GPU speed-up</b></td>
+    <td colspan="2" align="center"><b>44.0×</b></td>
+    <td colspan="2" align="center"><b>69.5×</b></td>
   </tr>
   <tr>
     <td>Activated nodes</td>
     <td>18,432</td>
     <td>18,432</td>
-    <td>—</td>
+    <td>18,432</td>
+    <td>18,432</td>
   </tr>
   <tr>
     <td>Activation-time range</td>
     <td>13.10–54.40 ms</td>
     <td>13.10–54.40 ms</td>
-    <td>—</td>
+    <td>13.10–36.30 ms</td>
+    <td>13.10–36.30 ms</td>
   </tr>
   <tr>
-    <td>Activation map agreement</td>
-    <td>—</td>
-    <td><b>Identical</b></td>
-    <td><b>0.000 ms</b> max difference</td>
+    <td>Activation map agreement (max |AT difference|)</td>
+    <td colspan="2" align="center"><b>Identical (0.000 ms)</b></td>
+    <td colspan="2" align="center"><b>Identical (0.000 ms)</b></td>
   </tr>
 </table>
 
-The GPU reduced the forward simulation time by **43×** while producing an activation map numerically identical to the CPU implementation.
+Timings are warm (post-JIT) forward passes. GPU: NVIDIA A100-PCIE-40GB; CPU: the 8 cores allocated to the job on a 2 × 24-core Intel Xeon node. For both ionic models the GPU produced activation maps numerically identical to the CPU implementation, with a **44× (mMS)** and **69.5× (CRN)** reduction in forward simulation time.
+
+<table>
+  <tr>
+    <td align="center"><b>mMS</b></td>
+    <td align="center"><b>CRN</b></td>
+  </tr>
+  <tr>
+    <td><img src="forward_model/outputs/figure_cube_forward_mMS.png" alt="mMS cube forward simulation" width="480"></td>
+    <td><img src="forward_model/outputs/figure_cube_forward_CRN.png" alt="CRN cube forward simulation" width="480"></td>
+  </tr>
+</table>
+
+Interactive 3D activation maps: `forward_model/outputs/cube_3d_activation_mMS.html` and `cube_3d_activation_CRN.html`.
 
 ## Solver Differentiability
 
@@ -355,29 +386,53 @@ Bipolar EGMs proved to be an **information rich target for constraining ionic pa
 
 A limitation of this fibre scale experiment is that **longitudinal conductivity `G_IL` is prescribed and not learned**. This isolates ionic parameter recovery within the JAX based inversion framework but does not demonstrate simultaneous identification of ionic and tissue conductivity parameters.
 
-### 3D Patient Specific LA Patch - Parameter Learning Results (NVIDIA Tesla P100)
+### 3D Patient Specific LA Patch - Parameter Learning Results (mMS and CRN)
 
-The parameter-learning pipeline recovers five cellular-kinetic and conductivity parameters: `tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`  from simulated omnipolar EGMs, under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals. (parameter_learning/`plot_la_patch_9cliques_egm.py` can be used to plot the clinical type Omnipolar EGMs simulated using our differentiable JAX-EP monodomain solver) 
+The parameter-learning pipeline recovers cellular-kinetic and conductivity parameters from simulated omnipolar EGMs for two ionic models:
+
+* **mMS (5 parameters):** `tau_in`, `tau_out`, `tau_open`, `tau_close`, `G_IL`
+* **CRN (6 parameters):** multipliers of the nominal `g_Na`, `g_to`, `g_Kr`, `g_CaL`, `g_K1` conductances, and `G_IL`
+
+Both run under a strict blind protocol: the ground-truth parameter values used to generate the target EGMs are never exposed to the optimizer, which sees only the resulting S1 and S2 electrogram signals (S1 at 10 ms, S2 at a 500 ms coupling interval). (parameter_learning/`plot_la_patch_9cliques_egm.py` can be used to plot the clinical type Omnipolar EGMs simulated using our differentiable JAX-EP monodomain solver) 
 
 <img src="parameter_learning/3D_LA/GT_EGM.png" alt="Ground truth S1 and S2 omnipolar electrograms used for parameter learning" width="750">
 
-Parameter learning proceeds in two stages. **Phase 1** uses a Nelder Mead curriculum that progressively fits the S2 electrogram mean squared error across all nine cliques, followed by the sequential addition of centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude. The S1 electrogram mean squared error across all nine cliques is then incorporated. **Phase 2** refines the resulting fit using L BFGS B with gradients computed by forward mode autodiff, minimising the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
+Parameter learning proceeds in two stages. **Phase 1** uses Nelder Mead to fit the S2 electrogram mean squared error across all nine cliques (for mMS as a curriculum that sequentially adds centre clique shape derived features: S1 and S2 activation recovery interval, activation time, slew rate, and peak to peak amplitude, followed by the S1 electrogram mean squared error; for CRN with simplex restarts). **Phase 2** refines the resulting fit using L BFGS B with exact gradients computed by forward mode autodiff (`jax.jacfwd`), minimising the combined S2 and S1 mean squared error, with the S1 term weighted at half the S2 term.
 
-The two phase strategy consistently recovered the underlying cellular and tissue parameters across all three tested physiological regimes.
+**Simulation settings.** Both models run on the same extracted patch (`patch_geometry.npz`, 2,894 nodes) with DT = 0.1 ms and four ionic sub-steps per half step, in float64. mMS uses β = 100 cm⁻¹. CRN uses β = 140 cm⁻¹ and a stimulus of 20 pA/pF, with two numerical changes for stable differentiation of the CRN model: the hard −40 mV switch in the I<sub>Na</sub> `h`/`j` gates is replaced by a sigmoid blend of width 0.5 mV (`CRN_SMOOTH_MV=0.5`), and the removable 0/0 points of the rate functions are evaluated by their exact limits (`CRN_SAFE_POLES=1`).
 
-* **Mean Absolute Percentage Error (MAPE):** 0.09% across all three parameter sets (`set1`, `set2`, `set3`).
-* **Median Absolute Percentage Error:** 0.03%.
-* **Subpercent Recovery:** All five parameters (`tau_in`, `tau_out`, `tau_open`, `tau_close`, and `G_IL`) were recovered to subpercent accuracy across all three parameter sets.
+The two phase strategy consistently recovered the underlying cellular and tissue parameters across all three tested physiological regimes for both ionic models:
 
-<img src="parameter_learning/3D_LA/result_param_table_figure.png" alt="3DLA parameter learning" width="750">
+| Ionic model | Set I MAPE | Set II MAPE | Set III MAPE | Mean MAPE |
+| :--- | ---: | ---: | ---: | ---: |
+| **mMS** (5 parameters) | 0.09% | 0.10% | 0.06% | **0.08%** |
+| **CRN** (6 parameters) | 0.02% | 0.03% | 0.01% | **0.02%** |
 
-| Case | Phase 1 Loss | Phase 2 Loss | Phase 2 Evaluations | Total Wall Time |
-| :--- | ------------: | ------------: | ------------------: | --------------: |
-| **set1** | 0.000094 | 1.15e-09 | 18 | 5.7 min |
-| **set2** | 0.000025 | 1.09e-09 | 50 | 13.7 min |
-| **set3** | 0.000045 | 2.95e-07 | 11 | 3.3 min |
+All parameters were recovered to subpercent accuracy in every set, for both models.
 
-These results demonstrate near exact recovery of the five target parameters from simulated omnipolar electrogram waveforms, while maintaining practical optimisation times on a single GPU. The results can be reproduced using `parameter_learning_patch_geometry.py`, which uses the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above.
+#### mMS
+
+<img src="parameter_learning/3D_LA/result_param_table_figure_mMS.png" alt="3D LA parameter learning, mMS" width="900">
+
+| Case | Phase 1 Loss | Phase 2 Loss | CPU Wall Time | GPU Wall Time (NVIDIA Tesla T4) |
+| :--- | ------------: | ------------: | ------------: | ------------: |
+| **set1** | 9.4e-5 | 1.2e-9 | 43.3 min | 7.1 min |
+| **set2** | 2.5e-5 | 9.3e-10 | 143.4 min | 17.0 min |
+| **set3** | 4.5e-5 | 4.1e-10 | 75.1 min | 4.1 min |
+
+#### CRN
+
+<img src="parameter_learning/3D_LA/result_param_table_figure_CRN.png" alt="3D LA parameter learning, CRN" width="900">
+
+| Case | Ground truth [`g_Na`, `g_to`, `g_Kr`, `g_CaL`, `g_K1`, `G_IL`] | Learned | MAPE |
+| :--- | :--- | :--- | ---: |
+| **set1** | 1.15, 0.85, 1.15, 0.85, 1.20, 0.200 | 1.150, 0.850, 1.149, 0.850, 1.200, 0.2000 | 0.02% |
+| **set2** | 0.85, 1.15, 0.85, 1.15, 0.80, 0.200 | 0.851, 1.150, 0.851, 1.150, 0.800, 0.1999 | 0.03% |
+| **set3** | 1.10, 1.10, 0.90, 0.90, 0.90, 0.200 | 1.101, 1.100, 0.900, 0.900, 0.900, 0.2000 | 0.01% |
+
+All CRN fits started from the nominal conductances (all multipliers 1.0) and `G_IL` = 0.225.
+
+These results demonstrate near exact recovery of the target parameters from simulated omnipolar electrogram waveforms for both a phenomenological (mMS) and a detailed biophysical (CRN) ionic model. They can be reproduced from `parameter_learning/3D_LA/` with `parameter_learning_patch_geometry.py` (mMS) and `crn_parameter_learning_patch_geometry.py` (CRN), which use the same extracted `patch_geometry.npz` geometry as the LA patch differentiability benchmark above and the target EGMs in `egm_pipeline_for_jax_set1/2/3/`.
 
 ## 📄 Manuscript
 
@@ -430,4 +485,3 @@ For individual component deep-dives, mathematical validations, structural nuance
 [4] Sundnes, J., Lines, G. T., Cai, X., Nielsen, B. F., Mardal, K.-A. & Tveito, A. (2007). Computing the Electrical Activity in the Heart. Springer, 1.
 
 [5] Valli, H., Ehnesh, M., Coveney, S., Jones, D. G., Chen, Z., Hussain, W., Markides, V., Nanthakumar, K., Wong, T., Roney, C. & others. (2025). *High Density Evaluation of the Arrhythmogenic Substrate in Atrial Fibrillation (HEAT-AF)*. Heart Rhythm O2.
-
