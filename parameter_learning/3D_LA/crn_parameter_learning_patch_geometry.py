@@ -17,8 +17,8 @@ Pipeline (as in the paper)
 
 Inputs (no clinical mesh is needed)
   patch_geometry.npz                                   LA patch (2,894 nodes), HD grid, fibres, pacing edge (shared with mMS)
-  CRN/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz     target EGMs (no parameters inside)
-  CRN/egm_pipeline_for_jax_{case}/gt_crn_truth_{case}.json  optional; used only AFTER the fit for MAPE
+  egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz     target EGMs (no parameters inside)
+  egm_pipeline_for_jax_{case}/gt_crn_truth_{case}.json  optional; used only AFTER the fit for MAPE
 
 Run from parameter_learning/3D_LA:   python crn_parameter_learning_patch_geometry.py
 
@@ -529,7 +529,7 @@ def check_0d(p6, label, bcl=500., nbeats=3, n_ion=N_ION):
 # ══════════════════════════════════════════════════════════════════════════
 from scipy.optimize import minimize
 
-GT_DIR   = os.environ.get("GT_DIR", "CRN")            # 3D_LA/CRN/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz
+GT_DIR   = os.environ.get("GT_DIR", ".")              # 3D_LA/egm_pipeline_for_jax_{case}/gt_crn_egm_{case}.npz (next to the mMS gt2_egm files)
 GT_FILE  = os.environ.get("GT_FILE", "gt_crn_egm_{case}.npz")
 WORK_DIR = os.environ.get("WORK_DIR", "./crn_results")
 os.makedirs(WORK_DIR, exist_ok=True)
