@@ -21,12 +21,18 @@ fem :   cotangent-weight FEM operator assembly, anisotropic
         conductivity weights.
 solver : JIT-compiled forward solver (matches the patch's exact
         scheme) and omnipolar EGM (OEGM) construction.
+crn :   Courtemanche-Ramirez-Nattel (CRN) ionic model and its
+        activation-time-map solver.
+ionic_models : IONIC_MODEL toggle ("mMS" or "CRN") -> matching solver
+        and settings.
 differentiability : FD / jax.grad / jax.jacfwd gradient comparison,
         matching the patch-level demonstration's structure.
 """
 from .mesh import build_thin_plate_mesh, place_hd_grid, build_edge_pacing_mask, build_patch_style_pacing_mask
 from .fem import build_fem_operators, anisotropic_weights
 from .solver import make_forward_solver, make_forward_solver_euler, make_forward_solver_atmap, make_forward_solver_traces, make_forward_solver_traces_euler, compute_oegm
+from .crn import make_forward_solver_atmap_crn, PNAMES_CRN
+from .ionic_models import MODEL_SETTINGS, get_model_settings, build_atmap_solver
 from .differentiability import (
     make_loss_fn, make_atmap_loss_fn, fd_gradient, ad_gradient, jacfwd_gradient,
     report_comparison, PNAMES,
@@ -40,4 +46,6 @@ __all__ = [
     "make_forward_solver_traces", "make_forward_solver_traces_euler", "compute_oegm",
     "make_loss_fn", "make_atmap_loss_fn", "fd_gradient", "ad_gradient", "jacfwd_gradient",
     "report_comparison", "PNAMES",
+    "make_forward_solver_atmap_crn", "PNAMES_CRN",
+    "MODEL_SETTINGS", "get_model_settings", "build_atmap_solver",
 ]

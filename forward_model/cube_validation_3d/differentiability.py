@@ -68,9 +68,10 @@ def make_loss_fn(run_forward, cliques, centre_clique_idx, i_s2, win_s2):
 
 def fd_gradient(loss_fn, p5_64, fd_eps=1e-3):
     """Central finite-difference gradient, one component at a time."""
-    grads = np.zeros(5, dtype=np.float64)
+    n_par = len(np.asarray(p5_64))          # 5 (mMS) or 6 (CRN)
+    grads = np.zeros(n_par, dtype=np.float64)
     t0 = time.time()
-    for i in range(5):
+    for i in range(n_par):
         p_p = np.array(p5_64); p_p[i] += fd_eps
         p_m = np.array(p5_64); p_m[i] -= fd_eps
         v_p = float(loss_fn(jnp.array(p_p, dtype=jnp.float64)))
@@ -105,17 +106,20 @@ def jacfwd_gradient(loss_fn, p5_64):
 
 
 def report_comparison(fd_grads, ad_grads, fwd_grads, t_fd, t_ad, t_fwd,
-                       explode_threshold=10.0, stable_tol=0.15):
+                       explode_threshold=10.0, stable_tol=0.15, pnames=None):
     """Print the same 3-way comparison table format used in the
-    original patch code."""
+    original patch code. pnames: parameter names (default mMS PNAMES;
+    pass PNAMES_CRN for the CRN model)."""
+    if pnames is None:
+        pnames = PNAMES
     print(f"\n  FD gradients (time {t_fd:.1f}s):")
-    for i, pn in enumerate(PNAMES):
+    for i, pn in enumerate(pnames):
         print(f"    {pn:<12}  FD={fd_grads[i]:>12.4e}")
 
     print(f"\n  jax.grad (reverse-mode AD, time {t_ad:.1f}s):")
     print(f"  {'Param':<12}{'AD grad':>14}{'FD grad':>14}{'ratio':>10}{'stable':>10}")
     all_stable = True
-    for i, pn in enumerate(PNAMES):
+    for i, pn in enumerate(pnames):
         ratio = ad_grads[i] / fd_grads[i] if abs(fd_grads[i]) > 1e-10 else float('nan')
         stable = abs(ratio) <= explode_threshold if np.isfinite(ratio) else False
         if not stable:
@@ -127,7 +131,7 @@ def report_comparison(fd_grads, ad_grads, fwd_grads, t_fd, t_ad, t_fwd,
     print(f"\n  jax.jacfwd (forward-mode AD, time {t_fwd:.1f}s):")
     print(f"  {'Param':<12}{'jacfwd':>14}{'FD':>14}{'ratio':>10}{'stable':>10}")
     fwd_stable = True
-    for i, pn in enumerate(PNAMES):
+    for i, pn in enumerate(pnames):
         ratio = fwd_grads[i] / fd_grads[i] if abs(fd_grads[i]) > 1e-10 else float('nan')
         ok = np.isfinite(ratio) and abs(ratio - 1.0) < stable_tol
         if not ok:
