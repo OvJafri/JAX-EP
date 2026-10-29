@@ -3,7 +3,7 @@
 plot_gradient_verification_cube.py
 =======================================
 Journal-standard gradient verification figure for the 3D cube
-differentiability showcase (run_differentiability_showcase_v2_final.py),
+differentiability showcase (run_differentiability_cpu_gpu.py),
 built entirely from the REAL, actual .npz files that script saves --
 not placeholder or fabricated numbers.
 
@@ -14,6 +14,11 @@ session) to get BOTH, which lets Panel D show a genuine CPU-vs-GPU
 timing comparison. If only one device's files are present, Panel D
 falls back to showing FD/jax.grad/jacfwd timing for that one device,
 with a note that a CPU-vs-GPU comparison needs both.
+
+Set IONIC_MODEL below (or the environment variable) to the model used in
+run_differentiability_cpu_gpu.py: "mMS" (5 parameters) or "CRN" (6
+parameters; reads the "_CRN" files and writes
+figure_cube_gradient_verification_CRN.png).
 
 Layout (4 panels):
   A. |gradient| magnitude, log-scaled AXIS (not log-transformed bar
@@ -53,9 +58,17 @@ plt.rcParams.update({
 _default_out = "/kaggle/working/outputs" if os.path.isdir("/kaggle/working") else "./outputs"
 OUT_DIR = os.environ.get("JAX_EP_CUBE_OUTPUT_DIR", _default_out)
 
-PNAMES_TEX = [r'$\tau_\mathrm{in}$', r'$\tau_\mathrm{out}$',
-              r'$\tau_\mathrm{open}$', r'$\tau_\mathrm{close}$',
-              r'$G_\mathrm{IL}$']
+IONIC_MODEL = os.environ.get("IONIC_MODEL", "mMS")     # "mMS" or "CRN"
+SUFFIX = "" if IONIC_MODEL == "mMS" else "_CRN"
+
+if IONIC_MODEL == "mMS":
+    PNAMES_TEX = [r'$\tau_\mathrm{in}$', r'$\tau_\mathrm{out}$',
+                  r'$\tau_\mathrm{open}$', r'$\tau_\mathrm{close}$',
+                  r'$G_\mathrm{IL}$']
+else:
+    PNAMES_TEX = [r'$g_\mathrm{Na}$', r'$g_\mathrm{to}$', r'$g_\mathrm{Kr}$',
+                  r'$g_\mathrm{CaL}$', r'$g_\mathrm{K1}$', r'$G_\mathrm{IL}$']
+N_PAR = len(PNAMES_TEX)
 
 
 def find_device_files(base_name):
@@ -70,12 +83,12 @@ def find_device_files(base_name):
     if not found:
         raise FileNotFoundError(
             f"No {base_name}_cpu.npz or {base_name}_gpu.npz found in {OUT_DIR} -- "
-            f"run run_differentiability_showcase_v2_final.py first.")
+            f"run run_differentiability_cpu_gpu.py first (same IONIC_MODEL).")
     return found
 
 
-ap_files = find_device_files("cube_differentiability_v2")
-bp_files = find_device_files("cube_differentiability_bipolar")
+ap_files = find_device_files(f"cube_differentiability_v2{SUFFIX}")
+bp_files = find_device_files(f"cube_differentiability_bipolar{SUFFIX}")
 
 ap_primary_device = "gpu" if "gpu" in ap_files else "cpu"
 bp_primary_device = "gpu" if "gpu" in bp_files else "cpu"
@@ -107,7 +120,7 @@ def panel_label(ax, letter):
 
 ax_a = fig.add_subplot(gs[0, :])
 panel_label(ax_a, 'A')
-x = np.arange(5)
+x = np.arange(N_PAR)
 w = 0.32
 ax_a.bar(x - w/2, np.abs(ap_fd), w, color=C[0], label='Raw AP ($V^2$ loss)',
          edgecolor='white', linewidth=0.4, zorder=3)
@@ -147,11 +160,11 @@ def draw_verification_table(ax, letter, title, fd_vals, fw_vals, subtitle_color=
     ax.plot([0.02, 0.98], [0.84, 0.84], color='#1B3A6B', lw=1.2,
             transform=ax.transAxes)
 
-    row_ys = np.linspace(0.73, 0.16, 5)
+    row_ys = np.linspace(0.73, 0.16, N_PAR)
     for ri, (p, fd, fw, ra) in enumerate(zip(PNAMES_TEX, fd_vals, fw_vals, ratios)):
         if ri % 2 == 0:
             ax.add_patch(plt.Rectangle(
-                (0.02, row_ys[ri]-0.055), 0.96, 0.10,
+                (0.02, row_ys[ri]-0.055*5/N_PAR), 0.96, 0.10*5/N_PAR,
                 transform=ax.transAxes,
                 facecolor='#EEF4FB', edgecolor='none', clip_on=False))
         for cx, val, col_, fs_, fw_style in [
@@ -168,7 +181,7 @@ def draw_verification_table(ax, letter, title, fd_vals, fw_vals, subtitle_color=
             transform=ax.transAxes)
     n_close = sum(1 for r in ratios if r != "n/a (~0)" and abs(float(r) - 1.0) < 0.05)
     ax.text(0.50, 0.03,
-            f'{n_close}/5 within 5% of unity  \u2713 AD gradients confirmed',
+            f'{n_close}/{N_PAR} within 5% of unity  \u2713 AD gradients confirmed',
             transform=ax.transAxes, ha='center', va='center',
             fontsize=6.6, color=subtitle_color, fontweight='bold')
 
@@ -233,11 +246,11 @@ else:
     fd_times = [float(ap_data['t_fd']), float(bp_data['t_fd'])]
     ad_times = [float(ap_data['t_ad']), float(bp_data['t_ad'])]
     fw_times = [float(ap_data['t_fwd']), float(bp_data['t_fwd'])]
-    b1 = ax_d.bar(x2 - w2, fd_times, w2, label='FD (5 params x 2 passes)',
+    b1 = ax_d.bar(x2 - w2, fd_times, w2, label=f'FD ({N_PAR} params x 2 passes)',
                   color='#BBBBBB', edgecolor='white', linewidth=0.4, zorder=3)
     b2 = ax_d.bar(x2, ad_times, w2, label='jax.grad (reverse-mode)',
                   color='#E69F00', edgecolor='white', linewidth=0.4, zorder=3)
-    b3 = ax_d.bar(x2 + w2, fw_times, w2, label='jacfwd (5 tangent passes)',
+    b3 = ax_d.bar(x2 + w2, fw_times, w2, label=f'jacfwd ({N_PAR} tangent passes)',
                   color='#0072B2', edgecolor='white', linewidth=0.4, zorder=3)
     for bars, times in [(b1, fd_times), (b2, ad_times), (b3, fw_times)]:
         for b, t in zip(bars, times):
@@ -257,7 +270,7 @@ else:
 ax_d.grid(axis='y', lw=0.4, alpha=0.4, zorder=0)
 ax_d.set_axisbelow(True)
 
-fname = os.path.join(OUT_DIR, 'figure_cube_gradient_verification.png')
+fname = os.path.join(OUT_DIR, f'figure_cube_gradient_verification{SUFFIX}.png')
 fig.savefig(fname, dpi=300, bbox_inches='tight', facecolor='white')
 plt.close(fig)
 print(f"Saved: {fname}")
