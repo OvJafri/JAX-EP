@@ -21,8 +21,13 @@ Outputs:
   - results_{case}.npz for each case (recovered parameters, Phase 1/2
     losses, evaluation counts, wall time)
  
-Usage: to estimate parameters for a different case (or subset of
-cases), edit the CASES list below (default: ['set1', 'set2', 'set3']).
+Phase 1: Nelder-Mead on the 9-clique S2 EGM loss.
+Phase 2: L-BFGS-B with exact forward-mode gradients (jax.jacfwd) on the
+9-clique S2 + 0.5 x S1 loss.  Patch simulations: beta = 100 cm^-1,
+dt = 0.1 ms, 4 ionic sub-steps per half step.
+
+Usage: run from parameter_learning/3D_LA; edit CASES to choose the sets
+(default: ['set1', 'set2', 'set3']).
 
 """
 import os, time
@@ -45,11 +50,11 @@ print(f"Default backend: {jax.default_backend()}")
 # [0] PATHS + SETTINGS
 # ══════════════════════════════════════════════════════════════════════════
 
-PATCH_GEOMETRY_PATH = "/path_to_dir/patch_geometry.npz"
-GT_EGM_DIR = "/path_to_dir/egm_pipeline_for_jax_set1"
-OUT_DIR = "/path_to_dir/working" if os.path.isdir("/path_to_dir/working") else "."
+PATCH_GEOMETRY_PATH = "patch_geometry.npz"
+GT_EGM_DIR = "."   # folder holding egm_pipeline_for_jax_{case}/gt2_egm_{case}.npz
+OUT_DIR = "."
 
-CASES = ['set1']  
+CASES = ['set1', 'set2', 'set3']  
 PNAMES = ['tau_in','tau_out','tau_open','tau_close','G_IL']
 # ── Physics ────────────────────────────────────────────────────────────────
 V_GATE=0.13; A_CRIT=0.13; BETA=100.; CM=1.
@@ -77,11 +82,13 @@ PATIENCE       = 50
 START_LEVEL    = 1
 # ── Phase 2 settings ──────────────────────────────────────────────────────
 FD_EPS_P2      = 1e-3
-LOSS_STOP_P2   = 1e-6
-GRAD_STOP_P2   = 1e-5
+LOSS_STOP_P2   = 1e-7
+GRAD_STOP_P2   = 1e-6
 PLATEAU_WIN_P2 = 5
-PLATEAU_TOL_P2 = 1e-3
-MAX_EVALS_P2   = 100
+PLATEAU_TOL_P2 = 1e-4
+MAX_EVALS_P2   = 50
+# Gradient method: True = jax.jacfwd (exact, 5 forward-mode tangents), False = central FD (10 forward runs)
+USE_JACFWD     = True
 # ── Initialisation ─────────────────────────────────────────────────────────
 INIT_FRAC = 0.50   # midpoint of bounds (maximum uncertainty)
 # ══════════════════════════════════════════════════════════════════════════
@@ -234,8 +241,8 @@ def build_patch(case):
 # ══════════════════════════════════════════════════════════════════════════
 all_results = {}
 print(f"\n{'='*60}")
-print(f"PARAMETER ESTIMATION — GT-FREE (GPU)")
-print(f"P1: NM S2-MSE | P2: FD L-BFGS-B S1+S2-MSE")
+print(f"PARAMETER ESTIMATION — GT-FREE  (backend: {jax.default_backend()})")
+print(f"P1: NM S2-MSE | P2: {'jacfwd' if USE_JACFWD else 'FD'} L-BFGS-B S1+S2-MSE")
 print(f"Initialisation: {INIT_FRAC*100:.0f}th percentile of bounds")
 print(f"{'='*60}")
 for CASE in CASES:
@@ -243,7 +250,7 @@ for CASE in CASES:
     print(f"\n{'='*60}")
     print(f"CASE: {CASE}")
     print(f"{'='*60}")
-    gt_data  = np.load(os.path.join(GT_EGM_DIR, f"gt2_egm_{CASE}.npz"),
+    gt_data  = np.load(os.path.join(GT_EGM_DIR, f"egm_pipeline_for_jax_{CASE}", f"gt2_egm_{CASE}.npz"),
                        allow_pickle=True)
     segs_s2_gt = gt_data['segs_s2_gt']
     segs_s1_gt = gt_data['segs_s1_gt']
@@ -373,12 +380,14 @@ for CASE in CASES:
           f"time={(time.time()-t_p1)/60.:.1f}min")
     # ── Phase 2 ───────────────────────────────────────────────────────────
     print(f"\n  {'─'*58}")
-    print(f"  PHASE 2 — FD L-BFGS-B S1+S2 MSE (all 5 free)")
+    print(f"  PHASE 2 — {'jacfwd' if USE_JACFWD else 'FD'} L-BFGS-B S1+S2 MSE (all 5 free)")
     print(f"  {'─'*58}")
     t_p2=time.time()
+
     x0_p2=all_results[CASE]['x_logit'].copy()
     p0_p2=np.array(get_p5(jnp.array(x0_p2,dtype=jnp.float64)))
     print(f"  Warm start: {np.round(p0_p2,3)}")
+
     def loss_s1s2_p2(p5_np):
         phi  = np.array(run_3d(jnp.array(p5_np,dtype=jnp.float64)))
         egms = get_egm(phi)
@@ -387,6 +396,36 @@ for CASE in CASES:
         l_s1 = float(np.mean([np.mean((egms[ci,i_s1:i_s1+win_s1]-segs_s1_gt[ci])**2)
                                /p2ps_s1_gt[ci]**2 for ci in range(9)]))
         return l_s2 + 0.5*l_s1
+
+    # ── jacfwd loss (JAX-native, for exact gradient) ───────────────────────
+    def loss_s1s2_jax(lp5_j):
+        p5_j_=get_p5(lp5_j)
+        phi  =run_3d(p5_j_)
+        def clique_egm_s2(ci):
+            return (phi[i_s2:i_s2+win_s2,CLIQUES[ci][0]]
+                   -phi[i_s2:i_s2+win_s2,CLIQUES[ci][1]]
+                   -phi[i_s2:i_s2+win_s2,CLIQUES[ci][2]]
+                   +phi[i_s2:i_s2+win_s2,CLIQUES[ci][3]])/4.
+        def clique_egm_s1(ci):
+            return (phi[i_s1:i_s1+win_s1,CLIQUES[ci][0]]
+                   -phi[i_s1:i_s1+win_s1,CLIQUES[ci][1]]
+                   -phi[i_s1:i_s1+win_s1,CLIQUES[ci][2]]
+                   +phi[i_s1:i_s1+win_s1,CLIQUES[ci][3]])/4.
+        l_s2=jnp.mean(jnp.stack([
+            jnp.mean((clique_egm_s2(ci)
+                      -jnp.array(segs_s2_gt[ci],dtype=jnp.float64))**2)
+            /jnp.float64(p2ps_s2_gt[ci])**2
+            for ci in range(9)]))
+        l_s1=jnp.mean(jnp.stack([
+            jnp.mean((clique_egm_s1(ci)
+                      -jnp.array(segs_s1_gt[ci],dtype=jnp.float64))**2)
+            /jnp.float64(p2ps_s1_gt[ci])**2
+            for ci in range(9)]))
+        return l_s2 + jnp.float64(0.5)*l_s1
+
+    loss_jax_jit    = jax.jit(loss_s1s2_jax)
+    jacfwd_grad_fn  = jax.jit(jax.jacfwd(loss_s1s2_jax))
+
     def fd_grad_p2(lp5_np):
         g=np.zeros(5,dtype=np.float64)
         for i in range(5):
@@ -396,13 +435,24 @@ for CASE in CASES:
             p_m=np.array(get_p5(jnp.array(lp_m,dtype=jnp.float64)))
             g[i]=(loss_s1s2_p2(p_p)-loss_s1s2_p2(p_m))/(2*FD_EPS_P2)
         return g
+
+    grad_method = 'jacfwd (exact, 5 passes)' if USE_JACFWD else 'FD (approx, 10 passes)'
+    print(f"  Gradient method: {grad_method}")
+
     n_p2=[0]; best_loss_p2=[1e9]; best_x_p2=[x0_p2.copy()]
     loss_hist_p2=[]; t_p2s=time.time()
+
     def f_p2_fd(x_np):
-        p5   =np.array(get_p5(jnp.array(x_np,dtype=jnp.float64)))
-        v    =loss_s1s2_p2(p5)
-        g_fd =fd_grad_p2(x_np)
-        g_norm=float(np.linalg.norm(g_fd))
+        x_j  = jnp.array(x_np, dtype=jnp.float64)
+        p5   = np.array(get_p5(x_j))
+        # Use same JAX function for both loss and gradient
+        if USE_JACFWD:
+            v    = float(loss_jax_jit(x_j))
+            g_fd = np.array(jacfwd_grad_fn(x_j))
+        else:
+            v    = loss_s1s2_p2(p5)
+            g_fd = fd_grad_p2(x_np)
+        g_norm = float(np.linalg.norm(g_fd))
         n_p2[0]+=1
         if v<best_loss_p2[0]-1e-9: best_loss_p2[0]=v; best_x_p2[0]=x_np.copy()
         loss_hist_p2.append(v)
@@ -410,16 +460,20 @@ for CASE in CASES:
               f"ti={p5[0]:.3f} to={p5[1]:.3f} "
               f"top={p5[2]:.1f} tcl={p5[3]:.1f} G={p5[4]:.4f} "
               f"|g|={g_norm:.6f} t={time.time()-t_p2s:.0f}s",flush=True)
+
         if v<=LOSS_STOP_P2 and g_norm<=GRAD_STOP_P2:
             print(f"  ✓ Converged: loss={v:.2e} |g|={g_norm:.2e}")
             raise StopIteration
+
         if len(loss_hist_p2)>=PLATEAU_WIN_P2:
             recent=loss_hist_p2[-PLATEAU_WIN_P2:]
             rel_imp=(recent[0]-recent[-1])/(recent[0]+1e-12)
             if rel_imp<PLATEAU_TOL_P2 and g_norm<1e-4:
                 print(f"  → Plateau: rel_imp={rel_imp:.2e}")
                 raise StopIteration
+
         return v, g_fd
+
     try:
         minimize(f_p2_fd, x0_p2, method='L-BFGS-B', jac=True,
                  options={'maxiter':MAX_EVALS_P2,'maxfun':MAX_EVALS_P2*11,
@@ -458,7 +512,7 @@ for CASE in CASES:
     print(f"  {'═'*56}")
 # ── Grand summary ─────────────────────────────────────────────────────────
 print(f"\n{'='*72}")
-print("GRAND SUMMARY — GPU Run")
+print("GRAND SUMMARY")
 print(f"{'='*72}")
 print(f"  {'Case':<8}{'P1 loss':>10}{'P2 loss':>10}{'Evals':>7}"
       f"{'Time':>8}  Recovered params")
