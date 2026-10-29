@@ -5,6 +5,8 @@ run_cpu_gpu_comparison.py
 SINGLE, self-contained script: run both the CPU and GPU forward-pass
 benchmarks and print a comparison table.
 
+Set IONIC_MODEL below (or via the environment variable) to "mMS" or "CRN".
+
 """
 import os
 import sys
@@ -14,8 +16,10 @@ import time
 import numpy as np
 
 # ══════════════════════════════════════════════════════════════════════════
-DATASET_PATH = '/path_to_folder/cube_validation_3d'
-WORK_DIR = "/path_to_folder/working" if os.path.isdir("/path_to_folder/working") else "."
+IONIC_MODEL = os.environ.get("IONIC_MODEL", "mMS")     # "mMS" or "CRN"
+# Folder that CONTAINS the cube_validation_3d package (default: this script's folder)
+DATASET_PATH = os.path.dirname(os.path.abspath(__file__))
+WORK_DIR = "."
 # ══════════════════════════════════════════════════════════════════════════
 
 OUT_DIR = os.path.join(WORK_DIR, "outputs")
@@ -40,8 +44,9 @@ if os.path.isdir(DATASET_PATH) and DATASET_PATH not in sys.path:
     sys.path.insert(0, DATASET_PATH)
 
 import cube_validation_3d as cube3d
-from cube_validation_3d.solver import make_forward_solver_atmap
+from cube_validation_3d import build_atmap_solver
 
+IONIC_MODEL = "{ionic_model}"
 OUT_DIR = "{out_dir}"
 os.makedirs(OUT_DIR, exist_ok=True)
 
@@ -57,7 +62,7 @@ backend = jax.default_backend()
 device_tag = "gpu" if backend == "gpu" else "cpu"
 
 print("="*60)
-print(f"Worker running on: {{device_tag.upper()}}")
+print(f"Worker running on: {{device_tag.upper()}}  (ionic model: {{IONIC_MODEL}})")
 if gpu_info:
     print(f"  GPU: {{gpu_info}}")
 print(f"  Devices: {{devices}}  Backend: {{backend}}")
@@ -65,9 +70,9 @@ print("="*60)
 
 LX_MM, LY_MM, THICKNESS_MM, DX_MM = 19.0, 19.0, 1.5, 0.2
 PACE_EDGE = "LEFT"
-V_GATE, A_CRIT, BETA, CM = 0.13, 0.13, 140.0, 1.0
+BETA, CM = 140.0, 1.0
 G_IL_NOMINAL = 0.350
-STIM_AMP, STIM_DUR = 200.0, 2.0
+STIM_DUR = 2.0
 N_ION, DT = 4, 0.1
 S1_START, S2_BCL = 10.0, 500.0
 S2_ON = S1_START + S2_BCL
@@ -80,28 +85,24 @@ Verts, Elems, top_grid, bot_grid = cube3d.build_thin_plate_mesh(
 mask_pace, paced_ids = cube3d.build_edge_pacing_mask(
     Verts, top_grid, bot_grid, edge=PACE_EDGE)
 m_inv, eu, ev, ecot, ed_x = cube3d.build_fem_operators(Verts, Elems, CM=CM)
-w = cube3d.anisotropic_weights(ecot, ed_x, G_IL=G_IL_NOMINAL, BETA=BETA, CM=CM)
 print(f"  {{len(Verts):,}} nodes  {{len(eu):,}} edges  ({{time.time()-t0:.1f}}s)")
 
 t_ms = np.arange(NT) * DT
 sv = (t_ms >= S1_START) & (t_ms < S1_START + STIM_DUR)
 
-run_atmap = make_forward_solver_atmap(
-    Np=len(Verts), eu=eu, ev=ev, m_inv=m_inv, w=w, mask_pace=mask_pace,
-    V_GATE=V_GATE, A_CRIT=A_CRIT, DT=DT, N_ION=N_ION, STIM_AMP=STIM_AMP,
-    CM=CM, sv_schedule=sv)
-
-p5_nominal = jnp.array(
-    [0.300, 5.000, 120.0, 150.0, G_IL_NOMINAL], dtype=jnp.float64)
+run_atmap, p_nominal, settings = build_atmap_solver(
+    IONIC_MODEL, Np=len(Verts), eu=eu, ev=ev, m_inv=m_inv, ecot=ecot, ed_x=ed_x,
+    mask_pace=mask_pace, BETA=BETA, CM=CM, DT=DT, N_ION=N_ION, sv_schedule=sv,
+    G_IL=G_IL_NOMINAL)
 
 t0 = time.time()
-_ = run_atmap(p5_nominal)
+_ = run_atmap(p_nominal)
 jax.block_until_ready(_)
 t_warmup = time.time() - t0
 print(f"  Warm-up: {{t_warmup:.2f}}s")
 
 t0 = time.time()
-at_hard, at_soft, activated = run_atmap(p5_nominal)
+at_hard, at_soft, activated = run_atmap(p_nominal)
 at_hard.block_until_ready()
 t_forward = time.time() - t0
 print(f"  Forward pass (warm): {{t_forward:.3f}}s")
@@ -111,7 +112,7 @@ at_soft_np = np.array(at_soft)
 act_np = np.array(activated)
 print(f"  Activated: {{act_np.sum():,}}/{{len(Verts):,}} nodes")
 
-out_path = os.path.join(OUT_DIR, f"cube_benchmark_{{device_tag}}.npz")
+out_path = os.path.join(OUT_DIR, f"cube_benchmark_{{IONIC_MODEL}}_{{device_tag}}.npz")
 np.savez(out_path,
          at_hard=at_hard_np, at_soft=at_soft_np, activated=act_np,
          t_forward=t_forward, t_warmup=t_warmup, device_tag=device_tag)
@@ -119,7 +120,8 @@ print(f"Saved: {{out_path}}")
 print("WORKER_DONE")
 '''
 
-WORKER_SOURCE = WORKER_SOURCE.format(folder_path=DATASET_PATH, out_dir=OUT_DIR)
+WORKER_SOURCE = WORKER_SOURCE.format(folder_path=DATASET_PATH, out_dir=OUT_DIR,
+                                     ionic_model=IONIC_MODEL)
 
 with open(WORKER_PATH, "w") as f:
     f.write(WORKER_SOURCE)
@@ -160,8 +162,8 @@ run_worker(force_cpu=True)
 run_worker(force_cpu=False)
 
 # ── Load both results and build the table ─────────────────────────────────
-cpu_path = os.path.join(OUT_DIR, "cube_benchmark_cpu.npz")
-gpu_path = os.path.join(OUT_DIR, "cube_benchmark_gpu.npz")
+cpu_path = os.path.join(OUT_DIR, f"cube_benchmark_{IONIC_MODEL}_cpu.npz")
+gpu_path = os.path.join(OUT_DIR, f"cube_benchmark_{IONIC_MODEL}_gpu.npz")
 
 if not os.path.exists(cpu_path):
     raise RuntimeError(f"CPU result not found at {cpu_path}")
@@ -193,7 +195,7 @@ else:
 activation_match = bool(np.array_equal(activated_cpu, activated_gpu))
 
 print(f"\n{'='*60}")
-print("COMPARISON TABLE")
+print(f"COMPARISON TABLE  (ionic model: {IONIC_MODEL})")
 print(f"{'='*60}")
 print(f"\n  {'Metric':<32}{'CPU':>14}{'GPU':>14}")
 print(f"  {'-'*60}")
@@ -212,10 +214,11 @@ print(f"  {'Mean |AT difference| (ms)':<32}{mean_at_diff:>28.4f}")
 print(f"  {'Max |AT difference| (ms)':<32}{max_at_diff:>28.4f}")
 
 print(f"\n{'='*60}")
-consistent = 0.5 * 40 < speedup < 2.0 * 40
 identical_enough = activation_match and max_at_diff < 0.5
-print(f"  Speedup consistent with manuscript's ~40x claim: "
-      f"{'YES' if consistent else 'NO'}")
+if IONIC_MODEL == "mMS":   # the manuscript's ~40x figure is for mMS
+    consistent = 0.5 * 40 < speedup < 2.0 * 40
+    print(f"  Speedup consistent with manuscript's ~40x claim: "
+          f"{'YES' if consistent else 'NO'}")
 print(f"  Activation maps effectively identical (< 0.5ms max diff): "
       f"{'YES' if identical_enough else 'NO'}")
 print(f"{'='*60}")

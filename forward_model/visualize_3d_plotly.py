@@ -7,11 +7,15 @@ activation-time map, using Plotly's Mesh3d -- which correctly
 handles depth/occlusion, so the FULL shell (top face + bottom face +
 side walls) can be shown at once without the projection-overlap
 issue a flat 2D matplotlib projection would have. Paired with the
-CPU-vs-GPU performance table (2D Tissue-Sample Forward Performance,
-NVIDIA Tesla P100), so the wavefront visualization and the GPU
+CPU-vs-GPU performance table (forward pass, measured by
+run_cpu_gpu_comparison.py), so the wavefront visualization and the GPU
 speedup result are shown together in one figure.
 
-Loads the output of run_forward_only.py (cube_forward_only_atmap.npz)
+Set IONIC_MODEL below (or via the environment variable) to the value
+used in run_forward.py. The CPU/GPU table is read from the files written
+by run_cpu_gpu_comparison.py for the same model (left out if absent).
+
+Loads the output of run_forward.py (cube_forward_only_atmap_<IONIC_MODEL>.npz)
 and renders an interactive HTML file you can open and rotate/zoom in
 a browser, styled as a clean, modern, dark-theme scientific
 visualization -- the wavefront glows across the plate, the pacing
@@ -24,18 +28,32 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+IONIC_MODEL = os.environ.get("IONIC_MODEL", "mMS")     # "mMS" or "CRN"
 OUT_DIR = os.environ.get("JAX_EP_CUBE_OUTPUT_DIR", "./outputs")
-IN_PATH = os.path.join(OUT_DIR, "cube_forward_only_atmap.npz")
+IN_PATH = os.path.join(OUT_DIR, f"cube_forward_only_atmap_{IONIC_MODEL}.npz")
+GPU_LABEL = "NVIDIA A100-PCIE-40GB"   # GPU used for run_cpu_gpu_comparison.py
 
-# ── CPU-vs-GPU performance table (2D Tissue-Sample Forward Performance,
-#    NVIDIA Tesla P100) -- edit these if you re-run the benchmark
-#    yourself and get different numbers ─────────────────────────────────
-PERF_CPU_TIME_S = 57.732
-PERF_GPU_TIME_S = 1.342
-PERF_SPEEDUP = PERF_CPU_TIME_S / PERF_GPU_TIME_S
-PERF_ACTIVATED_NODES = 18432
-PERF_AT_RANGE = "13.10–54.40 ms"
-PERF_MAX_AT_DIFF_MS = 0.000
+# ── CPU-vs-GPU table: read from run_cpu_gpu_comparison.py's output files
+#    (outputs/cube_benchmark_<IONIC_MODEL>_cpu.npz / _gpu.npz). If they are
+#    not there, the table is left out and only the 3D map is drawn. ─────────
+_cpu_f = os.path.join(OUT_DIR, f"cube_benchmark_{IONIC_MODEL}_cpu.npz")
+_gpu_f = os.path.join(OUT_DIR, f"cube_benchmark_{IONIC_MODEL}_gpu.npz")
+SHOW_PERF_TABLE = os.path.exists(_cpu_f) and os.path.exists(_gpu_f)
+if SHOW_PERF_TABLE:
+    _c, _g = np.load(_cpu_f), np.load(_gpu_f)
+    PERF_CPU_TIME_S = float(_c["t_forward"])
+    PERF_GPU_TIME_S = float(_g["t_forward"])
+    PERF_SPEEDUP = PERF_CPU_TIME_S / PERF_GPU_TIME_S
+    _act = _c["activated"] & _g["activated"]
+    PERF_ACTIVATED_NODES = int(_g["activated"].sum())
+    PERF_AT_RANGE = (f"{_g['at_hard'][_g['activated']].min():.2f}–"
+                     f"{_g['at_hard'][_g['activated']].max():.2f} ms")
+    PERF_MAX_AT_DIFF_MS = (float(np.abs(_c["at_hard"][_act] - _g["at_hard"][_act]).max())
+                           if _act.any() else float("nan"))
+    print(f"  CPU/GPU table from {_cpu_f} and {_gpu_f}")
+else:
+    print("  No CPU/GPU benchmark files found -- table not drawn "
+          "(run run_cpu_gpu_comparison.py first to include it).")
 
 print(f"Loading {IN_PATH} ...")
 data = np.load(IN_PATH)
@@ -78,12 +96,15 @@ WAVEFRONT_COLORSCALE = [
 ]
 
 # ── Layout: 3D wavefront (left, wide) + performance table (right) ────────
-fig = make_subplots(
-    rows=1, cols=2,
-    column_widths=[0.68, 0.32],
-    specs=[[{"type": "scene"}, {"type": "table"}]],
-    horizontal_spacing=0.02,
-)
+if SHOW_PERF_TABLE:
+    fig = make_subplots(
+        rows=1, cols=2,
+        column_widths=[0.68, 0.32],
+        specs=[[{"type": "scene"}, {"type": "table"}]],
+        horizontal_spacing=0.02,
+    )
+else:
+    fig = make_subplots(rows=1, cols=1, specs=[[{"type": "scene"}]])
 
 # Main activation-map mesh
 fig.add_trace(go.Mesh3d(
@@ -94,7 +115,7 @@ fig.add_trace(go.Mesh3d(
     cmin=vmin, cmax=vmax,
     colorbar=dict(
         title=dict(text="Activation<br>time (ms)", font=dict(color="#e5e7eb", size=13)),
-        len=0.5, thickness=16, x=0.62, y=0.5,
+        len=0.5, thickness=16, x=0.62 if SHOW_PERF_TABLE else 0.95, y=0.5,
         tickfont=dict(color="#e5e7eb", size=11),
         outlinewidth=0, bgcolor="rgba(0,0,0,0)",
     ),
@@ -120,44 +141,48 @@ if len(paced_pts) > 0:
 
 # ── Performance table: CPU vs GPU, matching the manuscript's own
 #    2D Tissue-Sample Forward Performance table exactly ─────────────────
-table_header = ["<b>Metric</b>", "<b>CPU</b>", "<b>GPU</b>", "<b>GPU Speed-up</b>"]
-table_rows = [
-    ["<b>Forward simulation</b>", f"{PERF_CPU_TIME_S:.3f} s",
-     f"<b>{PERF_GPU_TIME_S:.3f} s</b>", f"<b>{PERF_SPEEDUP:.1f}×</b>"],
-    ["Activated nodes", f"{PERF_ACTIVATED_NODES:,}", f"{PERF_ACTIVATED_NODES:,}", "—"],
-    ["Activation-time range", PERF_AT_RANGE, PERF_AT_RANGE, "—"],
-    ["Activation map agreement", "—", "<b>Identical</b>",
-     f"<b>{PERF_MAX_AT_DIFF_MS:.3f} ms</b> max diff"],
-]
-cols = list(zip(*table_rows))  # transpose rows -> columns for go.Table
+if SHOW_PERF_TABLE:
+    table_header = ["<b>Metric</b>", "<b>CPU</b>", "<b>GPU</b>", "<b>GPU Speed-up</b>"]
+    table_rows = [
+        ["<b>Forward simulation</b>", f"{PERF_CPU_TIME_S:.3f} s",
+         f"<b>{PERF_GPU_TIME_S:.3f} s</b>", f"<b>{PERF_SPEEDUP:.1f}×</b>"],
+        ["Activated nodes", f"{PERF_ACTIVATED_NODES:,}", f"{PERF_ACTIVATED_NODES:,}", "—"],
+        ["Activation-time range", PERF_AT_RANGE, PERF_AT_RANGE, "—"],
+        ["Activation map agreement", "—", "<b>Identical</b>",
+         f"<b>{PERF_MAX_AT_DIFF_MS:.3f} ms</b> max diff"],
+    ]
+    cols = list(zip(*table_rows))  # transpose rows -> columns for go.Table
 
-fig.add_trace(go.Table(
-    header=dict(
-        values=table_header,
-        fill_color="#1f2937",
-        font=dict(color="#f3f4f6", size=13),
-        align="left",
-        height=32,
-        line=dict(color="#374151", width=1),
-    ),
-    cells=dict(
-        values=cols,
-        fill_color=[["#161a23", "#1a1e29", "#161a23", "#1a1e29"]],
-        font=dict(color="#e5e7eb", size=12),
-        align="left",
-        height=30,
-        line=dict(color="#2a2f3a", width=1),
-    ),
-    columnwidth=[34, 22, 22, 30],
-), row=1, col=2)
+if SHOW_PERF_TABLE:
+    fig.add_trace(go.Table(
+        header=dict(
+            values=table_header,
+            fill_color="#1f2937",
+            font=dict(color="#f3f4f6", size=13),
+            align="left",
+            height=32,
+            line=dict(color="#374151", width=1),
+        ),
+        cells=dict(
+            values=cols,
+            fill_color=[["#161a23", "#1a1e29", "#161a23", "#1a1e29"]],
+            font=dict(color="#e5e7eb", size=12),
+            align="left",
+            height=30,
+            line=dict(color="#2a2f3a", width=1),
+        ),
+        columnwidth=[34, 22, 22, 30],
+    ), row=1, col=2)
 
 fig.update_layout(
     title=dict(
-        text=(f"<b>3D Thin-Plate Cube — Activation Wavefront & GPU Speedup</b>"
+        text=(f"<b>3D Thin-Plate Cube — Activation Wavefront ({IONIC_MODEL})"
+              + (" & GPU Speedup" if SHOW_PERF_TABLE else "") + "</b>"
               f"<br><span style='font-size:13px;color:#9ca3af'>"
               f"{len(Verts):,} nodes · full shell · AT range "
-              f"{vmin:.1f}–{vmax:.1f}ms · {PERF_SPEEDUP:.0f}× GPU speedup "
-              f"(NVIDIA Tesla P100)</span>"),
+              f"{vmin:.1f}–{vmax:.1f}ms"
+              + (f" · {PERF_SPEEDUP:.0f}× GPU speedup ({GPU_LABEL})"
+                 if SHOW_PERF_TABLE else "") + "</span>"),
         font=dict(color="#f3f4f6", size=21, family="DejaVu Sans, Arial"),
         x=0.02, xanchor="left", y=0.97,
     ),
@@ -178,7 +203,7 @@ fig.update_layout(
             eye=dict(x=1.35, y=-1.55, z=1.1),
             up=dict(x=0, y=0, z=1),
         ),
-        domain=dict(x=[0.0, 0.62]),
+        domain=dict(x=[0.0, 0.62] if SHOW_PERF_TABLE else [0.0, 0.92]),
     ),
     paper_bgcolor="#0f1117",
     plot_bgcolor="#0f1117",
@@ -188,7 +213,7 @@ fig.update_layout(
     margin=dict(l=0, r=0, t=100, b=0),
 )
 
-out_html = os.path.join(OUT_DIR, "cube_3d_activation.html")
+out_html = os.path.join(OUT_DIR, f"cube_3d_activation_{IONIC_MODEL}.html")
 fig.write_html(out_html)
 print(f"\nSaved interactive visualization: {out_html}")
 print("Open this file in a web browser to rotate/zoom/inspect.")

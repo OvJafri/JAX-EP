@@ -2,7 +2,9 @@
 """
 visualize_forward.py
 =========================
-Visualizes the output of run_forward_only.py: a top-face activation
+Visualizes the output of run_forward.py (either ionic model; set
+IONIC_MODEL below or via the environment variable, same value as used
+in run_forward.py): a top-face activation
 (LAT) map with isochrones and a propagation-direction indicator, a
 measured conduction-velocity profile checked directly against the
 3D LA forward simulation (patient MRI-derived mesh)'s known CV
@@ -27,8 +29,9 @@ Usage
 -----
     python visualize_forward.py
 
-Reads cube_forward_only_atmap.npz from OUT_DIR (see below) and writes
-figure_cube_forward.png alongside it.
+Reads cube_forward_only_atmap_<IONIC_MODEL>.npz from OUT_DIR and writes
+figure_cube_forward_<IONIC_MODEL>.png alongside it. The patient-mesh CV
+reference band (panel B) is the mMS value, so it is drawn for mMS only.
 """
 import os
 import numpy as np
@@ -38,11 +41,13 @@ import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
 
 # ── Paths ────────────────────────────────────────────────────────────────
+IONIC_MODEL = os.environ.get("IONIC_MODEL", "mMS")     # "mMS" or "CRN"
 OUT_DIR = os.environ.get("JAX_EP_CUBE_OUTPUT_DIR", "./outputs")
-IN_PATH = os.path.join(OUT_DIR, "cube_forward_only_atmap.npz")
+IN_PATH = os.path.join(OUT_DIR, f"cube_forward_only_atmap_{IONIC_MODEL}.npz")
 
-# Must match the geometry actually used in run_forward_only.py
+# Must match the geometry used in run_forward.py (read from the file if stored)
 LX_MM, LY_MM, THICKNESS_MM, DX_MM = 19.0, 19.0, 1.5, 0.2
+SHOW_CV_REFERENCE = (IONIC_MODEL == "mMS")
 
 # 3D LA forward simulation (patient MRI-derived mesh)'s reported
 # conduction-velocity range (Full-LA, CS/LAA pacing) -- shown directly
@@ -57,6 +62,8 @@ at_hard = data["at_hard"]
 at_soft = data["at_soft"]
 activated = data["activated"]
 DT = float(data["DT"])
+if "LX_MM" in data:
+    LX_MM, LY_MM, DX_MM = float(data["LX_MM"]), float(data["LY_MM"]), float(data["DX_MM"])
 print(f"  {len(Verts):,} nodes  DT={DT}ms")
 
 # ── Reconstruct the top-face triangulation only ────────────────────────────
@@ -90,9 +97,12 @@ slope_ms_per_mm, intercept = np.polyfit(x_valid, at_valid, 1)
 # (mm/ms) -> (m/s): 1 mm/ms = 1 m/s exactly
 cv_m_per_s = (1.0 / slope_ms_per_mm) if slope_ms_per_mm != 0 else np.nan
 in_clinical_range = CLINICAL_CV_MIN_MS <= cv_m_per_s <= CLINICAL_CV_MAX_MS
-print(f"  Measured CV: {cv_m_per_s:.3f} m/s  "
-      f"(3D LA forward simulation range: {CLINICAL_CV_MIN_MS}-{CLINICAL_CV_MAX_MS} m/s, "
-      f"in range: {in_clinical_range})")
+if SHOW_CV_REFERENCE:
+    print(f"  Measured CV: {cv_m_per_s:.3f} m/s  "
+          f"(3D LA forward simulation range: {CLINICAL_CV_MIN_MS}-{CLINICAL_CV_MAX_MS} m/s, "
+          f"in range: {in_clinical_range})")
+else:
+    print(f"  Measured CV: {cv_m_per_s:.3f} m/s")
 
 gap = np.abs(at_hard_top - at_soft_top)
 gap_valid = gap[valid]
@@ -150,17 +160,22 @@ ax.plot(x_fit, slope_ms_per_mm * x_fit + intercept, color="#D55E00", lw=1.8,
 # 3D LA forward simulation (patient MRI-derived mesh)'s known CV range,
 # shown as a shaded reference band anchored at the same starting AT as
 # the fit
-t0_clinical_min = intercept + (1.0 / CLINICAL_CV_MIN_MS) * x_fit
-t0_clinical_max = intercept + (1.0 / CLINICAL_CV_MAX_MS) * x_fit
-ax.fill_between(x_fit, t0_clinical_max, t0_clinical_min,
-                 color="#2E7D32", alpha=0.15,
-                 label=f"3D LA forward simulation\n(patient MRI-derived mesh)\nCV range\n({CLINICAL_CV_MIN_MS}-{CLINICAL_CV_MAX_MS} m/s)")
+if SHOW_CV_REFERENCE:
+    t0_clinical_min = intercept + (1.0 / CLINICAL_CV_MIN_MS) * x_fit
+    t0_clinical_max = intercept + (1.0 / CLINICAL_CV_MAX_MS) * x_fit
+    ax.fill_between(x_fit, t0_clinical_max, t0_clinical_min,
+                     color="#2E7D32", alpha=0.15,
+                     label=f"3D LA forward simulation\n(patient MRI-derived mesh)\nCV range\n({CLINICAL_CV_MIN_MS}-{CLINICAL_CV_MAX_MS} m/s)")
 ax.set_xlabel("x-distance from paced edge (mm)")
 ax.set_ylabel("Activation time (ms)")
-status_text = "within patient-mesh range" if in_clinical_range else "outside patient-mesh range"
-status_color = "#2E7D32" if in_clinical_range else "#D55E00"
-ax.set_title(f"B. Conduction velocity: {cv_m_per_s:.3f} m/s ({status_text})",
-             fontweight="bold", color=status_color, fontsize=9.5)
+if SHOW_CV_REFERENCE:
+    status_text = "within patient-mesh range" if in_clinical_range else "outside patient-mesh range"
+    status_color = "#2E7D32" if in_clinical_range else "#D55E00"
+    ax.set_title(f"B. Conduction velocity: {cv_m_per_s:.3f} m/s ({status_text})",
+                 fontweight="bold", color=status_color, fontsize=9.5)
+else:
+    ax.set_title(f"B. Conduction velocity: {cv_m_per_s:.3f} m/s",
+                 fontweight="bold", fontsize=9.5)
 ax.legend(frameon=False, fontsize=6.8, loc="upper left")
 ax.grid(lw=0.3, alpha=0.3)
 
@@ -182,9 +197,9 @@ ax.legend(frameon=False, fontsize=7, loc="upper left")
 ax.grid(lw=0.3, alpha=0.3)
 
 fig.suptitle(f"3D Thin-Plate Cube — Forward-Pass Physics Validation "
-             f"({LX_MM}×{LY_MM}mm top face)", fontweight="bold", y=1.03, fontsize=12.5)
+             f"({IONIC_MODEL}, {LX_MM:g}×{LY_MM:g}mm top face)", fontweight="bold", y=1.03, fontsize=12.5)
 plt.tight_layout()
-fname = os.path.join(OUT_DIR, "figure_cube_forward.png")
+fname = os.path.join(OUT_DIR, f"figure_cube_forward_{IONIC_MODEL}.png")
 fig.savefig(fname, dpi=200, bbox_inches="tight", facecolor="white")
 plt.close(fig)
 print(f"\nSaved: {fname}")

@@ -1,28 +1,25 @@
 # -*- coding: utf-8 -*-
 """
 run_forward.py
-=======================
-STEP 1 of 2: validates the core forward physics (wave propagation,
-activation-time map, conduction velocity) on the full-scale 3D
-thin-plate cube, WITHOUT the HD-grid/lead-field/EGM calculation.
+==============
+Forward-only physics check on the 3D thin-plate cube: wave propagation,
+activation-time (AT) map and conduction velocity, without the HD-grid /
+EGM calculation.
 
-This deliberately isolates the two concerns that were previously
-tangled together (and where two genuine bugs were already found in
-the lead-field/electrode code): core wave-propagation physics vs.
-electrode/lead-field computation. Run this FIRST; only once this
-looks physiologically sensible should you move to
-run_cube_benchmark.py (which adds the HD grid, OEGMs, and the
-FD/AD/jacfwd differentiability comparison).
+IONIC MODEL TOGGLE
+------------------
+Set IONIC_MODEL below (or the environment variable IONIC_MODEL) to
+    "mMS"  modified Mitchell-Schaeffer   p = [tau_in, tau_out, tau_open, tau_close, G_IL]
+    "CRN"  Courtemanche-Ramirez-Nattel   p = [m_gNa, m_gto, m_gKr, m_gCaL, m_gK1, G_IL]
+Per-model settings (stimulus amplitude, AT threshold, nominal parameters)
+are in cube_validation_3d/ionic_models.py.
 
-Uses exactly the same mesh, FEM, and forward-solver settings as
-run_cube_benchmark.py (dx=0.2mm, DT=0.1ms, N_ION=4, Rush-Larsen) --
-only the output (activation-time map instead of lead-field/EGM time
-series) differs.
+Mesh/FEM/time stepping are the same for both models (dx = 0.2 mm,
+DT = 0.1 ms, N_ION = 4, Crank-Nicolson diffusion, BETA = 140).
 
-The output file `cube_forward_only_atmap.npz` can be post-processed
-using `visualization_forward.py` to generate the corresponding
-2D activation-time (LAT) figure for visual inspection of the
-propagation pattern.
+Output: outputs/cube_forward_only_atmap_<IONIC_MODEL>.npz, post-processed by
+visualize_forward.py (2D LAT/CV figure) and visualize_3d_plotly.py
+(interactive 3D view).
 """
 import os
 import time
@@ -35,7 +32,11 @@ import jax.numpy as jnp
 jax.config.update("jax_enable_x64", True)
 
 import cube_validation_3d as cube3d
-from cube_validation_3d.solver import make_forward_solver_atmap
+from cube_validation_3d import build_atmap_solver
+
+# ══════════════════════════════════════════════════════════════════════════
+IONIC_MODEL = os.environ.get("IONIC_MODEL", "mMS")     # "mMS" or "CRN"
+# ══════════════════════════════════════════════════════════════════════════
 
 # ── Paths ─────────────────────────────────────────────────────────────────
 OUT_DIR = os.environ.get("JAX_EP_CUBE_OUTPUT_DIR", "./outputs")
@@ -49,17 +50,17 @@ try:
 except Exception:
     pass
 print("=" * 60)
-print("STEP 1/2 — Forward-only physics validation (no HD grid/EGM)")
+print(f"Forward-only physics check (no HD grid/EGM) — ionic model: {IONIC_MODEL}")
 print(f"  JAX:     {jax.__version__}")
 print(f"  Devices: {jax.devices()}")
 print("=" * 60)
 
-# ── Geometry / physics (matches run_cube_benchmark.py exactly) ───────────
+# ── Geometry / physics (shared by both ionic models) ─────────────────────
 LX_MM, LY_MM, THICKNESS_MM, DX_MM = 19.0, 19.0, 1.5, 0.2
 PACE_EDGE = "LEFT"
-V_GATE, A_CRIT, BETA, CM = 0.13, 0.13, 140.0, 1.0
+BETA, CM = 140.0, 1.0
 G_IL_NOMINAL = 0.350
-STIM_AMP, STIM_DUR = 200.0, 2.0
+STIM_DUR = 2.0
 N_ION, DT = 4, 0.1
 S1_START, S2_BCL = 10.0, 500.0
 S2_ON = S1_START + S2_BCL
@@ -70,7 +71,7 @@ print(f"\n  Geometry: {LX_MM}x{LY_MM}x{THICKNESS_MM}mm, dx={DX_MM}mm")
 print(f"  Protocol: DT={DT}ms  NT={NT}  TOTAL={TOTAL_MS}ms")
 print(f"  Pacing:   entire {PACE_EDGE} edge")
 
-# ── Build mesh / FEM (identical to run_cube_benchmark.py) ────────────────
+# ── Build mesh / FEM ─────────────────────────────────────────────────────
 print("\n[1] Building thin-plate mesh ...")
 t0 = time.time()
 Verts, Elems, top_grid, bot_grid = cube3d.build_thin_plate_mesh(
@@ -84,7 +85,6 @@ print(f"  Pacing mask: {int(mask_pace.sum())} nodes ({PACE_EDGE} edge, top+botto
 print("\n[2] Building FEM operators ...")
 t0 = time.time()
 m_inv, eu, ev, ecot, ed_x = cube3d.build_fem_operators(Verts, Elems, CM=CM)
-w = cube3d.anisotropic_weights(ecot, ed_x, G_IL=G_IL_NOMINAL, BETA=BETA, CM=CM)
 print(f"  {len(eu):,} edges  ({time.time()-t0:.1f}s)")
 
 # ── S1-only stimulus schedule (single stimulus is enough to validate
@@ -96,18 +96,19 @@ print(f"\n  Stimulus: {sv.sum()} timesteps = {sv.sum()*DT}ms "
 assert abs(sv.sum() * DT - STIM_DUR) < 1e-9, "Stimulus duration mismatch!"
 
 # ── Build and run the activation-time-map solver ──────────────────────────
-run_atmap = make_forward_solver_atmap(
-    Np=len(Verts), eu=eu, ev=ev, m_inv=m_inv, w=w, mask_pace=mask_pace,
-    V_GATE=V_GATE, A_CRIT=A_CRIT, DT=DT, N_ION=N_ION, STIM_AMP=STIM_AMP,
-    CM=CM, sv_schedule=sv)
-
-p5_nominal = jnp.array(
-    [0.300, 5.000, 120.0, 150.0, G_IL_NOMINAL], dtype=jnp.float64)
+run_atmap, p_nominal, settings = build_atmap_solver(
+    IONIC_MODEL, Np=len(Verts), eu=eu, ev=ev, m_inv=m_inv, ecot=ecot, ed_x=ed_x,
+    mask_pace=mask_pace, BETA=BETA, CM=CM, DT=DT, N_ION=N_ION, sv_schedule=sv,
+    G_IL=G_IL_NOMINAL)
+print(f"  Ionic model: {IONIC_MODEL}  stimulus {settings['STIM_AMP']}  "
+      f"AT threshold V_norm > {settings['V_GATE']}")
+print("  Parameters: " + ", ".join(
+    f"{n}={float(v):g}" for n, v in zip(settings["PNAMES"], p_nominal)))
 
 print("\n[3] Running forward pass (warm-up + timed) ...")
-_ = run_atmap(p5_nominal)  # warm up JIT
+_ = run_atmap(p_nominal)  # warm up JIT
 t0 = time.time()
-at_hard, at_soft, activated = run_atmap(p5_nominal)
+at_hard, at_soft, activated = run_atmap(p_nominal)
 at_hard.block_until_ready()
 t_forward = time.time() - t0
 print(f"  Forward (warm): {t_forward:.2f}s")
@@ -151,13 +152,17 @@ else:
         if dt_ms > 0.5:
             cv_m_s = (dx_mm * 1e-3) / (dt_ms * 1e-3)
             print(f"\n  Rough conduction velocity estimate: {cv_m_s:.3f} m/s")
-            print(f"  (compare to the manuscript's own reported "
-                  f"CV~0.384-0.471 m/s range for this ionic model)")
+            if IONIC_MODEL == "mMS":
+                print(f"  (compare to the manuscript's own reported "
+                      f"CV~0.384-0.471 m/s range for this ionic model)")
 
 # ── Save ──────────────────────────────────────────────────────────────────
-np.savez(os.path.join(OUT_DIR, "cube_forward_only_atmap.npz"),
+out_name = f"cube_forward_only_atmap_{IONIC_MODEL}.npz"
+np.savez(os.path.join(OUT_DIR, out_name),
          at_hard=at_np, at_soft=at_soft_np, activated=act_np,
-         Verts=Verts, Elems=Elems, DT=DT, NT=NT)
-print(f"\nSaved: cube_forward_only_atmap.npz")
-print("\nDONE — if the checks above look sensible, proceed to "
-      "run_cube_benchmark.py for the HD-grid/EGM/differentiability step.")
+         Verts=Verts, Elems=Elems, DT=DT, NT=NT,
+         ionic_model=IONIC_MODEL, params=np.array(p_nominal),
+         LX_MM=LX_MM, LY_MM=LY_MM, DX_MM=DX_MM)
+print(f"\nSaved: {out_name}")
+print("\nDONE — visualise with visualize_forward.py and visualize_3d_plotly.py "
+      f"(same IONIC_MODEL={IONIC_MODEL}).")
